@@ -120,7 +120,7 @@ G4bool GasGapSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory *)
   }
   TrGEMAnalysis::GetInstance()->SetEnergyDeposition(volName, edep, edepI, t);
 
-  if(volName == "GasGap1" || volName == "GasGap2") {
+  if(volName == "GasGap1" || volName == "GasGap2" || volName == "GasGap3" || volName == "GasGap4") {
     // we're in one of the gaps
 
     for(unsigned int T=0;T< ttTrack.size();T++){
@@ -190,8 +190,6 @@ void GasGapSensitiveDetector::Initialize(G4HCofThisEvent* HCE)
 
 void GasGapSensitiveDetector::EndOfEvent(G4HCofThisEvent*)
 {
-  G4int factor = 5 ;
-
   TrGEMAnalysis::GetInstance()->SavePrimary(primaryene,zinteraction) ;
       
   ttTrack.clear();

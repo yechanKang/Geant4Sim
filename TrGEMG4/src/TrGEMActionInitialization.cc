@@ -6,8 +6,10 @@
 #include "Geant4Sim/TrGEMG4/interface/TrGEMStackingAction.hh"
 #include "Geant4Sim/TrGEMG4/interface/TrGEMTrackingAction.hh"
 
-TrGEMActionInitialization::TrGEMActionInitialization()
-: G4VUserActionInitialization()
+#include "G4String.hh"
+
+TrGEMActionInitialization::TrGEMActionInitialization(char* partName_)
+: G4VUserActionInitialization(), partName(partName_)
 {
 }
 
@@ -23,7 +25,7 @@ void TrGEMActionInitialization::BuildForMaster() const {
 }
 
 void TrGEMActionInitialization::Build() const {
-  SetUserAction(new TrGEMPrimaryGeneratorAction);
+  SetUserAction(new TrGEMPrimaryGeneratorAction(partName));
 	
   TrGEMRunAction* runAction = new TrGEMRunAction;
   SetUserAction(runAction);

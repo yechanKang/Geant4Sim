@@ -46,7 +46,7 @@ class G4Event;
 class TrGEMPrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
   public:
-    TrGEMPrimaryGeneratorAction();    
+    TrGEMPrimaryGeneratorAction(char*);    
     ~TrGEMPrimaryGeneratorAction();
 
   public:
@@ -54,7 +54,9 @@ class TrGEMPrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
     G4ParticleGun* GetParticleGun() { return fParticleGun;} ;
             
   private:
+    char*           partName;
     G4ParticleGun*  fParticleGun;
+    G4int           eneRange;
     std::vector<G4double> cdf;
     std::vector<G4double> ene;
 };

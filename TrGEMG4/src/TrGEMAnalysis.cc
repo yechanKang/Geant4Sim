@@ -34,17 +34,17 @@ TrGEMAnalysis::TrGEMAnalysis()
   m_ROOT_file = 0;
   NomeStrati= 
   {
-    "FakeBottom",                                   //Fake
-    "DriftCopper1","DriftBoard","DriftCopper2",     //Drift Board
-    "GasGap1",                                      //Drift Gap
-    "Gem1Copper1","Gem1","Gem1Copper2",             //gem1
-    "GasGap2",                                      //Transfer I Gap
-    "Gem2Copper1","Gem2","Gem2Copper2",             //gem2
-    "GasGap3",                                      //Transfer II Gap
-    "Gem3Copper1","Gem3","Gem3Copper2",             //gem3
-    "GasGap4",                                      //Induction Gap
-    "ReadCopper1","ReadoutBoard","ReadCopper2",     //Readout Board
-    "FakeTop"                                       //Fake
+    "FakeBottom",                                   //Fake             --- 0
+    "DriftCopper1","DriftBoard","DriftCopper2",     //Drift Board      --- 1,2,3
+    "GasGap1",                                      //Drift Gap        --- 4
+    "Gem1Copper1","Gem1","Gem1Copper2",             //gem1             --- 5,6,7
+    "GasGap2",                                      //Transfer I Gap   --- 8
+    "Gem2Copper1","Gem2","Gem2Copper2",             //gem2             --- 9,10,11
+    "GasGap3",                                      //Transfer II Gap  --- 12
+    "Gem3Copper1","Gem3","Gem3Copper2",             //gem3             --- 13,14,15
+    "GasGap4",                                      //Induction Gap    --- 16
+    "ReadCopper1","ReadoutBoard","ReadCopper2",     //Readout Board    --- 17,18,19
+    "FakeTop"                                       //Fake             --- 20
   };
   posProcess=                                       //It comes from FTFP_BERT_HP
   {
@@ -81,8 +81,8 @@ void TrGEMAnalysis::PrepareNewRun(const G4Run* /*aRun*/)
   n_positron = 0;
   
   // create ROOT file
-  fileName = fileName + ".root";
-  m_ROOT_file = new TFile(fileName.c_str(),"RECREATE");
+  fileName = "root://cms-xrdr.sdfarm.kr:1094///xrd/store/user/yekang/TrGEMG4/" + fileName + ".root";
+  m_ROOT_file = TFile::Open(fileName.c_str(),"RECREATE");
   if(m_ROOT_file) 
     G4cout << "ROOT file " << fileName << " is created " << G4endl;
   else {
@@ -102,9 +102,9 @@ void TrGEMAnalysis::PrepareNewRun(const G4Run* /*aRun*/)
   t->Branch("primaryEne",&primaryEne, "primaryEne/D") ;
   t->Branch("zInteraction",&zInteraction, "zInteraction/D") ;
 
-  t->Branch("EleGap", &eleGap, "EleGap/I");
-  t->Branch("PosGap", &posGap, "PosGap/I");
-  t->Branch("ChargeGap", &chargeGap, "ChargeGap/I");
+  t->Branch("EleGap", &eleGap, "EleGap[4]/I");
+  t->Branch("PosGap", &posGap, "PosGap[4]/I");
+  t->Branch("ChargeGap", &chargeGap, "ChargeGap[4]/I");
   
   //Variables for sensitivity study, It will be used for drawing plots
   t->Branch("gapTrackPart",&gapTrackPart);
@@ -113,6 +113,7 @@ void TrGEMAnalysis::PrepareNewRun(const G4Run* /*aRun*/)
   t->Branch("gapTrackGenProcessNum",&gapTrackGenProcessNum);
   t->Branch("gapTrackEne",&gapTrackEne);
   t->Branch("gapTrackVolume",&gapTrackVolume);
+  t->Branch("gapTrackGenVolume",&gapTrackGenVolume);
 
   //If you want to use geant4's result as garfield simulation input, you can use Garfield* variables.
   t->Branch("GarfieldPdg",&pdgCode) ;
@@ -160,15 +161,18 @@ void TrGEMAnalysis::PrepareNewEvent(const G4Event* /*anEvent*/)
   primaryEne=0.;
   zInteraction=0.;
 
-  eleGap = 0;
-  posGap = 0;
-  chargeGap = 0;
+  for ( int i = 0; i < 4; i++) {
+    eleGap[i]    = 0;
+    posGap[i]    = 0;
+    chargeGap[i] = 0;
+  }
   
   gapTrackPart.clear();
   gapTrackCharge.clear();
   gapTrackGeneration.clear();
   gapTrackGenProcessNum.clear();
   gapTrackVolume.clear();
+  gapTrackGenVolume.clear();
   gapTrackGenZ.clear();
   gapTrackEne.clear();
   
@@ -309,17 +313,20 @@ void TrGEMAnalysis::SaveGapTrack(
   G4double kinene) 
 {
   if(genprocess == "primary") return;
-  if(gapCharge != 0) chargeGap = 1;
-  if(gapPart == 11) eleGap = 1;
-  if(gapPart == -11) posGap = 1;
   G4int num = FindVolume(genvolume);
+  G4int currentNum = FindVolume(volname);
   G4int processNum = FindGapTrackProcess(genprocess);
+  G4int gapNum = currentNum / 4 - 1;
+  if(gapCharge != 0) chargeGap[gapNum] = 1;
+  if(gapPart == 11)  eleGap[gapNum] = 1;
+  if(gapPart == -11) posGap[gapNum] = 1;
 
   gapTrackPart.push_back(gapPart) ;
   gapTrackCharge.push_back(gapCharge) ;
   gapTrackGeneration.push_back(generation) ;
   gapTrackGenProcessNum.push_back(processNum) ;
-  gapTrackVolume.push_back(num);
+  gapTrackVolume.push_back(currentNum);
+  gapTrackGenVolume.push_back(num);
   gapTrackGenZ.push_back(genz) ;
   gapTrackEne.push_back(kinene) ;
 }
@@ -376,6 +383,7 @@ G4int TrGEMAnalysis::FindVolume(std::string volume)
   for(G4int i = 0; i < 21; i++)
   {
     if(volume == (NomeStrati[i]+"Log")) return i;
+    else if(volume == NomeStrati[i]) return i;
   }
   return -1;
 }

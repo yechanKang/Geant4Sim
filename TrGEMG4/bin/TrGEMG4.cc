@@ -11,6 +11,8 @@
 #include "G4VModularPhysicsList.hh"
 #include "G4RadioactiveDecayPhysics.hh"
 
+//#include "G4VisExecutive.hh"
+
 #include "Geant4Sim/TrGEMG4/interface/TrGEMDetectorConstruction.hh"
 #include "Geant4Sim/TrGEMG4/interface/TrGEMActionInitialization.hh"
 #include "Geant4Sim/TrGEMG4/interface/TrGEMAnalysis.hh"
@@ -32,7 +34,7 @@ int main(int argc, char** argv) {
 
   runManager->SetUserInitialization(physics);
 
-  runManager->SetUserInitialization(new TrGEMActionInitialization());
+  runManager->SetUserInitialization(new TrGEMActionInitialization(argv[1]));
 
   // initialize G4 kernel
   runManager->Initialize();
@@ -40,10 +42,10 @@ int main(int argc, char** argv) {
   // get the pointer to the UI manager
   G4UImanager* UImanager = G4UImanager::GetUIpointer();
 
-  G4String temp = argv[1];
+  G4String temp = argv[2];
   TrGEMAnalysis::GetInstance()->SetFileName(temp);
   G4String command = "/run/beamOn ";
-  temp = argv[2];
+  temp = argv[3];
   UImanager->ApplyCommand(command+temp);
 
   // job termination

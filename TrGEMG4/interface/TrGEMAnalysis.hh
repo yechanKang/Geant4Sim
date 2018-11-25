@@ -111,9 +111,9 @@ class TrGEMAnalysis {
     G4double primaryEne;
     G4double zInteraction;
 
-    G4int eleGap;
-    G4int posGap;
-    G4int chargeGap;
+    G4int eleGap[4];
+    G4int posGap[4];
+    G4int chargeGap[4];
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////
     std::vector<G4int> gapTrackPart ;
@@ -121,6 +121,7 @@ class TrGEMAnalysis {
     std::vector<G4int> gapTrackGeneration ;
     std::vector<G4int> gapTrackGenProcessNum ;
     std::vector<G4int> gapTrackVolume ;
+    std::vector<G4int> gapTrackGenVolume;
     std::vector<G4double> gapTrackGenZ ;
     std::vector<G4double> gapTrackEne ;
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////

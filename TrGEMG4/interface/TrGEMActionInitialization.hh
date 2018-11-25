@@ -5,11 +5,13 @@
 
 class TrGEMActionInitialization : public G4VUserActionInitialization{
   public:
-    TrGEMActionInitialization();
+    TrGEMActionInitialization(char*);
     virtual ~TrGEMActionInitialization();
 
     virtual void Build() const;
     virtual void BuildForMaster() const;
+  private:
+    char* partName;
 };
 
 

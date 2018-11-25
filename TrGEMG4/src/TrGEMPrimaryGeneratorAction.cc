@@ -50,12 +50,18 @@
  
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-TrGEMPrimaryGeneratorAction::TrGEMPrimaryGeneratorAction()
+TrGEMPrimaryGeneratorAction::TrGEMPrimaryGeneratorAction(char* partName_) : partName(partName_)
 {
   G4int n_particle = 1;
   //  fParticleGun  = new G4ParticleGun(n_particle);
   //  G4ParticleDefinition* particlen = particleTable -> FindParticle("neutron");
-  G4ParticleDefinition* particlen = G4ParticleTable::GetParticleTable() -> FindParticle("neutron");
+  //G4ParticleDefinition* particlen = G4ParticleTable::GetParticleTable() -> FindParticle("neutron");
+  G4ParticleDefinition* particlen = G4ParticleTable::GetParticleTable() -> FindParticle(partName);
+
+  std::string temp = partName;
+  if (temp == "neutron") eneRange = 12;
+  else if (temp == "gamma") eneRange = 6;
+  else throw;
 
   fParticleGun  = new G4ParticleGun(particlen,n_particle);
   // fParticleGun->SetParticleEnergy(1*GeV);
@@ -119,7 +125,8 @@ void TrGEMPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   //  }
   //}
   
-  primaryEne = TMath::Power(10, (yyy-1)*12);
+  //primaryEne = TMath::Power(10, (yyy-1)*12);
+  primaryEne = TMath::Power(10, (yyy-1)*eneRange);
 
   fParticleGun->SetParticleEnergy(primaryEne*GeV);
     
