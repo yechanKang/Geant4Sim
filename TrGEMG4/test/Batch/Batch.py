@@ -11,7 +11,7 @@ nEvent = int(sys.argv[3])
 
 cmsswBase = os.environ['CMSSW_BASE']
 username = "yekang"
-dirName = jobName
+dirName = "root://cms-xrdr.sdfarm.kr:1094///xrd/store/user/yekang/TrGEMG4/%s"%(jobName)
     
 Dirname = "%s/src/Geant4Sim/TrGEMG4/test/Batch/%s"%(cmsswBase,jobName)
 if os.path.isdir(Dirname):

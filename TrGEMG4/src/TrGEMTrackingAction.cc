@@ -14,18 +14,21 @@ TrGEMTrackingAction::~TrGEMTrackingAction()
 void TrGEMTrackingAction::PreUserTrackingAction( const G4Track* aTrack )
 {
   G4int partCode = aTrack->GetParticleDefinition()->GetPDGEncoding();
+  G4double energy = aTrack->GetKineticEnergy();
   G4String process;
   if(aTrack->GetCreatorProcess()!=0) {
     const G4VProcess * genproc = aTrack->GetCreatorProcess();  
     process = genproc->GetProcessName();
   }
-  else  {process="primary";}
-  G4double energy = aTrack->GetKineticEnergy();
+  else  {
+    process="primary";
+    TrGEMAnalysis::GetInstance()->SavePrimary(partCode, energy);
+  }
   G4String volume = aTrack->GetLogicalVolumeAtVertex()->GetName();
   G4int trackID = aTrack->GetTrackID();
   G4int parentID = aTrack->GetParentID();
   
-  TrGEMAnalysis::GetInstance()->SaveGeneratingTrack(partCode, process, energy, volume, trackID, parentID);
+  TrGEMAnalysis::GetInstance()->SaveGenTrack(partCode, process, volume, trackID, parentID);
 }
 
 void TrGEMTrackingAction::PostUserTrackingAction( const G4Track* aTrack )

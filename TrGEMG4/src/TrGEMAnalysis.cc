@@ -16,6 +16,8 @@
 #include <TH1D.h>
 #include <TNtuple.h>
 
+#include <TVector3.h>
+
 TrGEMAnalysis* TrGEMAnalysis::singleton = 0 ;
 
 TrGEMAnalysis* TrGEMAnalysis::GetInstance() {
@@ -72,16 +74,10 @@ void TrGEMAnalysis::PrepareNewRun(const G4Run* /*aRun*/)
 
   eventCounter = 0 ;
   //Reset variables relative to the run
-  thisRunTotEM  = 0;
-  thisRunTotEM2 = 0;
-  thisRunCentralEM  = 0;
-  thisRunCentralEM2 = 0;
-  n_gamma = 0;
-  n_electron = 0;
-  n_positron = 0;
   
   // create ROOT file
-  fileName = "root://cms-xrdr.sdfarm.kr:1094///xrd/store/user/yekang/TrGEMG4/" + fileName + ".root";
+  //fileName = "root://cms-xrdr.sdfarm.kr:1094///xrd/store/user/yekang/TrGEMG4/" + fileName + ".root";
+  fileName = fileName + ".root";
   m_ROOT_file = TFile::Open(fileName.c_str(),"RECREATE");
   if(m_ROOT_file) 
     G4cout << "ROOT file " << fileName << " is created " << G4endl;
@@ -90,118 +86,87 @@ void TrGEMAnalysis::PrepareNewRun(const G4Run* /*aRun*/)
     G4cerr << "ROOT file task3.root has not been created!" << G4endl;
   }
 
-  // create histograms
-  m_ROOT_histo0 = new TH1D("etot","Total energy deposit normalized to beam energy",100,0,1);
-  //m_ROOT_histo1 = new TH1D("e0","Energy deposit in central crystal normalized to beam energy",100,0,1);
-  m_ROOT_histo2 = new TH1D("ez","Energy profile along the GEM (mm)",100,0,20);
-  m_ROOT_histo3 = new TH1D("egap","Energy profile vs. GasGap",5,0,5);
-
   // create tree and branch(es)
-  t = new TTree("Event","Run with awesome data") ;
+  tEvent = new TTree("Event","Run with awesome data") ;
 
-  t->Branch("primaryEne",&primaryEne, "primaryEne/D") ;
-  t->Branch("zInteraction",&zInteraction, "zInteraction/D") ;
+  tEvent->Branch("primaryEne",  &primaryEne,  "primaryEne/D");
+  tEvent->Branch("primaryPart", &primaryPart, "primaryPart/I");
 
-  t->Branch("EleGap", &eleGap, "EleGap[4]/I");
-  t->Branch("PosGap", &posGap, "PosGap[4]/I");
-  t->Branch("ChargeGap", &chargeGap, "ChargeGap[4]/I");
+  tEvent->Branch("EleGap",    &eleGap,    "EleGap[4]/I");
+  tEvent->Branch("PosGap",    &posGap,    "PosGap[4]/I");
+  tEvent->Branch("ChargeGap", &chargeGap, "ChargeGap[4]/I");
+
+  tEvent->Branch("nElectron", &nElectron, "nElectron/I");
+  tEvent->Branch("nPositron", &nPositron, "nPositron/I");
+  tEvent->Branch("nGamma",    &nGamma,    "nGamma/I"   );
+  tEvent->Branch("nCharged",  &nCharged,  "nCharged/I" );
+
+  tElectron = new TTree("Electron", "Electron Info");
+  tElectron->Branch("partId",   &partId);
+  tElectron->Branch("processVol", &processVol);
+  tElectron->Branch("processNum", &processNum);
+  tElectron->Branch("kineticEnergy", &kineticEnergy);
+  tElectron->Branch("positionX", &positionX, "positionX/D");
+  tElectron->Branch("positionY", &positionY, "positionY/D");
+  tElectron->Branch("positionZ", &positionZ, "positionZ/D");
+  tElectron->Branch("momentumX", &momentumX, "momentumX/D");
+  tElectron->Branch("momentumY", &momentumY, "momentumY/D");
+  tElectron->Branch("momentumZ", &momentumZ, "momentumZ/D");
   
-  //Variables for sensitivity study, It will be used for drawing plots
-  t->Branch("gapTrackPart",&gapTrackPart);
-  t->Branch("gapTrackCharge", &gapTrackCharge);
-  t->Branch("gapTrackIntNum", &gapTrackGeneration);
-  t->Branch("gapTrackGenProcessNum",&gapTrackGenProcessNum);
-  t->Branch("gapTrackEne",&gapTrackEne);
-  t->Branch("gapTrackVolume",&gapTrackVolume);
-  t->Branch("gapTrackGenVolume",&gapTrackGenVolume);
-
-  //If you want to use geant4's result as garfield simulation input, you can use Garfield* variables.
-  t->Branch("GarfieldPdg",&pdgCode) ;
-  t->Branch("GarfieldEnergy",&kineticEnergy) ;
-  t->Branch("GarfieldPosX",&positionX) ;
-  t->Branch("GarfieldPosY",&positionY) ;
-  t->Branch("GarfieldPosZ",&positionZ) ;
-  t->Branch("GarfieldMomX",&momentumX) ;
-  t->Branch("GarfieldMomY",&momentumY) ;
-  t->Branch("GarfieldMomZ",&momentumZ) ;
-
-  //gapTrack* variables are only saved when particles get in gasGap.
-  //If you need more information of other particles you can use generating* variables.
-  t->Branch("GenPart", &generatingPartCode) ;
-  t->Branch("GenProcessNum", &generatingProcessNum) ;
-  t->Branch("GenEne", &generatingEnergy) ;
-  t->Branch("GenVolume", &generatingVolume) ;
-  t->Branch("GenIntNum", &generatingIntNum) ;
-
-  //We can use energy depostion for calculating number of ionization.
-  t->Branch("edepVolume", &edepVolume);
-  t->Branch("edep", &edep);
-  t->Branch("edepI", &edepI);
-  t->Branch("edepTime", &edepTime);
+  tPositron = new TTree("Positron", "Positron Info");
+  tPositron->Branch("partId",   &partId);
+  tPositron->Branch("processVol", &processVol);
+  tPositron->Branch("processNum", &processNum);
+  tPositron->Branch("kineticEnergy", &kineticEnergy);
+  tPositron->Branch("positionX", &positionX, "positionX/D");
+  tPositron->Branch("positionY", &positionY, "positionY/D");
+  tPositron->Branch("positionZ", &positionZ, "positionZ/D");
+  tPositron->Branch("momentumX", &momentumX, "momentumX/D");
+  tPositron->Branch("momentumY", &momentumY, "momentumY/D");
+  tPositron->Branch("momentumZ", &momentumZ, "momentumZ/D");
+  
+  tGamma = new TTree("Gamma", "Gamma Info");
+  tGamma->Branch("partId",   &partId);
+  tGamma->Branch("processVol", &processVol);
+  tGamma->Branch("processNum", &processNum);
+  tGamma->Branch("kineticEnergy", &kineticEnergy);
+  tGamma->Branch("positionX", &positionX, "positionX/D");
+  tGamma->Branch("positionY", &positionY, "positionY/D");
+  tGamma->Branch("positionZ", &positionZ, "positionZ/D");
+  tGamma->Branch("momentumX", &momentumX, "momentumX/D");
+  tGamma->Branch("momentumY", &momentumY, "momentumY/D");
+  tGamma->Branch("momentumZ", &momentumZ, "momentumZ/D");
+  
+  tCharged = new TTree("Charged", "other charged particle info");
+  tCharged->Branch("partId",   &partId);
+  tCharged->Branch("processVol", &processVol);
+  tCharged->Branch("processNum", &processNum);
 }
 
 void TrGEMAnalysis::PrepareNewEvent(const G4Event* /*anEvent*/)
 {
   //Reset variables relative to this event
   isNewEvent = true ;
-  thisEventTotEM = 0;
-  thisEventCentralEM = 0;
-  thisEventSecondaries = 0;
-
-  elexevt = 0 ;
-  posxevt = 0 ;
-  gammaxevt = 0 ;
-  secoxevt = 0 ;
-
-  edepVolume.clear();
-  edep.clear();
-  edepI.clear();
-  edepTime.clear();
 
   primaryEne=0.;
-  zInteraction=0.;
+  
+  nElectron = 0;
+  nPositron = 0;
+  nGamma    = 0;
+  nCharged  = 0;
 
   for ( int i = 0; i < 4; i++) {
     eleGap[i]    = 0;
     posGap[i]    = 0;
     chargeGap[i] = 0;
   }
-  
-  gapTrackPart.clear();
-  gapTrackCharge.clear();
-  gapTrackGeneration.clear();
-  gapTrackGenProcessNum.clear();
-  gapTrackVolume.clear();
-  gapTrackGenVolume.clear();
-  gapTrackGenZ.clear();
-  gapTrackEne.clear();
-  
-  postTrackPart.clear();
-  postTrackEne.clear();
-  
-  pdgCode.clear();
-  kineticEnergy.clear();
-  positionX.clear();
-  positionY.clear();
-  positionZ.clear();
-  momentumX.clear();
-  momentumY.clear();
-  momentumZ.clear();
 
-  generatingPartCode.clear();
-  generatingProcessNum.clear();
-  generatingEnergy.clear();
-  generatingVolume.clear();
-  generatingIntNum.clear();
   genMap.clear();
 }
 
 void TrGEMAnalysis::EndOfEvent(const G4Event* /*anEvent*/)
 {
-  //Accumulate over the run
-  thisRunTotEM += thisEventTotEM;
-
-  t->Fill() ; 
+  tEvent->Fill() ; 
 }
 
 void TrGEMAnalysis::EndOfRun(const G4Run* aRun)
@@ -211,28 +176,7 @@ void TrGEMAnalysis::EndOfRun(const G4Run* aRun)
   G4int numEvents = aRun->GetNumberOfEvent();
   if(numEvents == 0) { return; }
 
-  //G4double norm = numEvents*beamEnergy;
-  G4cout << "================="<<G4endl;
-  G4cout << "Summary for run: " << aRun->GetRunID() << G4endl ;
-  G4cout << "  Beam of " << beamParticle->GetParticleName() 
-      << " kinetic energy: "<< G4BestUnit(beamEnergy,"Energy") << G4endl ;
-  G4cout << "  Event processed:         " << numEvents << G4endl ;
-  G4cout << "  Average number of gamma: "<<(G4double)n_gamma/(G4double)numEvents<<G4endl ;
-  G4cout << "  Average number of e-   : "<<(G4double)n_electron/(G4double)numEvents<<G4endl ;
-  G4cout << "  Average number of e+   : "<<(G4double)n_positron/(G4double)numEvents<<G4endl ;
-  for(G4int i = 0; i < 4; i++) {
-    G4cout << "Gap number " << i + 1 << G4endl ;
-    G4cout << "  Average number of gamma: " << (G4double)n_gapGamma[i]/(G4double)numEvents << G4endl ;
-    G4cout << "  Average number of e-   : " << (G4double)n_gapElectron[i]/(G4double)numEvents << G4endl ;
-    G4cout << "  Average number of e+   : " << (G4double)n_gapPositron[i]/(G4double)numEvents << G4endl ;
-    G4cout << "  - - - - - - - - - - " << G4endl ;
-  }
-  G4cout << "  Average energy deposition in TrGEM: "
-         << G4BestUnit(thisRunTotEM/(G4double)numEvents,"Energy") << G4endl ;
-
   // Writing and closing the ROOT file
-  m_ROOT_file->cd() ;
-  t->Write() ;
   G4cout << "ROOT: files writing..." << G4endl;
   m_ROOT_file->Write();
   G4cout << "ROOT: files closing..." << G4endl;
@@ -241,141 +185,68 @@ void TrGEMAnalysis::EndOfRun(const G4Run* aRun)
 
 }
 
-void TrGEMAnalysis::AddSecondary(const G4ParticleDefinition* part)
-{
-  if(part == G4Gamma::Gamma())            { ++n_gamma; }
-  else if(part == G4Electron::Electron()) { ++n_electron; }  
-  else if(part == G4Positron::Positron()) { ++n_positron; }
+void TrGEMAnalysis::SavePrimary(G4int primaryPart_, G4double primaryEne_){
+  primaryPart = primaryPart_;
+  primaryEne = primaryEne_;
 }
-
-
-void TrGEMAnalysis::AddGapSecondary(const G4ParticleDefinition* part, G4int gapNum)
-{
-  gapNum-- ;
-  if(part == G4Gamma::Gamma())            { ++n_gapGamma[gapNum]; }
-  else if(part == G4Electron::Electron()) { ++n_gapElectron[gapNum]; }  
-  else if(part == G4Positron::Positron()) { ++n_gapPositron[gapNum]; }
-}
-
-void TrGEMAnalysis::AddEDep(G4double edep, G4double z)
-{
-  thisEventTotEM += edep;
-  m_ROOT_histo2->Fill(z, edep);
-}
-
-void TrGEMAnalysis::AddEDepSD(G4double edep, G4int layerIndex)
-{
-  m_ROOT_histo3->Fill(layerIndex, edep);
-}
-
-void TrGEMAnalysis::SetBeam(const G4ParticleDefinition* part, G4double energy)
-{
-  beamParticle = part;
-  beamEnergy = energy;
-}
-
-void TrGEMAnalysis::AddParticlesPerEvent(G4int PDGCode) {
-  secoxevt++ ;
-  if(PDGCode == 11) elexevt++ ;
-  else if(PDGCode == -11) posxevt++ ;
-  else if(PDGCode == 22) gammaxevt++ ;
-  else G4cout << "You must implement a new variable" << G4endl ; 
-}
-
-void TrGEMAnalysis::SetEnergyDeposition(std::string someVolme, G4double someEdep, G4double someEdepI, G4double someTime)
-{
-
-  // edepVolume.push_back(someVolme);
-  edep.push_back(someEdep);
-  edepI.push_back(someEdepI);
-  edepTime.push_back(someTime);
-}
-
-//Save Primary data/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void TrGEMAnalysis::SavePrimary(G4double primaryene, G4double zinteraction){
-
-  primaryEne = primaryene;
-  zInteraction = zinteraction;
-   
-}
-
-//Save gap track data///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TrGEMAnalysis::SaveGapTrack(
+  G4int trackId,
   G4int gapPart, 
   G4int gapCharge,
-  G4int generation,
-  std::string genprocess, 
-  std::string genvolume, 
-  G4double genz, 
-  std::string volname,  
-  G4double kinene) 
+  G4double kinene, 
+  TVector3 position, 
+  TVector3 momentum ) 
 {
-  if(genprocess == "primary") return;
-  G4int num = FindVolume(genvolume);
-  G4int currentNum = FindVolume(volname);
-  G4int processNum = FindGapTrackProcess(genprocess);
+  if (trackId == 1) return;
+  G4int currentNum = genMap[trackId][3];
   G4int gapNum = currentNum / 4 - 1;
-  if(gapCharge != 0) chargeGap[gapNum] = 1;
-  if(gapPart == 11)  eleGap[gapNum] = 1;
-  if(gapPart == -11) posGap[gapNum] = 1;
-
-  gapTrackPart.push_back(gapPart) ;
-  gapTrackCharge.push_back(gapCharge) ;
-  gapTrackGeneration.push_back(generation) ;
-  gapTrackGenProcessNum.push_back(processNum) ;
-  gapTrackVolume.push_back(currentNum);
-  gapTrackGenVolume.push_back(num);
-  gapTrackGenZ.push_back(genz) ;
-  gapTrackEne.push_back(kinene) ;
+  kineticEnergy = kinene;
+  positionX = position.x();
+  positionY = position.y();
+  positionZ = position.z();
+  momentumX = momentum.x();
+  momentumY = momentum.y();
+  momentumZ = momentum.z();
+  PreSavingTrack(trackId);
+  if (gapPart == 11)
+  {
+    nElectron++;
+    eleGap[gapNum]++;
+    tElectron->Fill();
+  } else if (gapPart == -11)
+  {
+    nPositron++;
+    posGap[gapNum]++;
+    tPositron->Fill();
+  } else if (gapPart == 22)
+  {
+    nGamma++;
+    tGamma->Fill();
+  } else if (gapCharge != 0) 
+  {
+    nCharged++;
+    chargeGap[gapNum]++;
+    tCharged->Fill();
+  }
+  PostSavingTrack();
 }
 
-void TrGEMAnalysis::SaveGarfieldQuantities( 
-  G4int aPdgCode,
-  G4double aKineticEnergy,
-  G4double aPositionX, 
-  G4double aPositionY, 
-  G4double aPositionZ,
-  G4double aMomentumX, 
-  G4double aMomentumY, 
-  G4double aMomentumZ) {
-
-  pdgCode.push_back(aPdgCode) ;
-  kineticEnergy.push_back( aKineticEnergy ) ;
-  positionX.push_back( aPositionX );
-  positionY.push_back( aPositionY );
-  positionZ.push_back( aPositionZ );
-  momentumX.push_back( aMomentumX );
-  momentumY.push_back( aMomentumY );
-  momentumZ.push_back( aMomentumZ );
-
-}
-
-void TrGEMAnalysis::SaveGeneratingTrack(
+void TrGEMAnalysis::SaveGenTrack(
   G4int partCode, 
   std::string process, 
-  G4double energy, 
   std::string volume, 
   G4int trackID, 
   G4int parentID)
 {
   if(process == "primary") return;
-  G4int intNum = 0;
-  G4int id = trackID;
-  genMap[id] = parentID;
-  while(genMap[id] != 0)
-  {
-    intNum++;
-    id = genMap[id];
-  }
-  G4int num = FindVolume(volume);
+  G4int volNum = FindVolume(volume);
   G4int processNum = FindGeneratingProcess(process);
-  generatingPartCode.push_back(partCode);
-  generatingProcessNum.push_back(processNum);
-  generatingVolume.push_back(num);
-  generatingEnergy.push_back(energy);
-  generatingIntNum.push_back(intNum);
+  G4int id = trackID;
+  genMap[id][0] = parentID;
+  genMap[id][1] = partCode;
+  genMap[id][2] = processNum;
+  genMap[id][3] = volNum;
 }
 
 G4int TrGEMAnalysis::FindVolume(std::string volume)
@@ -406,4 +277,34 @@ G4int TrGEMAnalysis::FindGeneratingProcess(std::string process)
   }
   G4cout << process << G4endl;
   return -1;
+}
+
+void TrGEMAnalysis::PreSavingTrack(G4int trackID)
+{
+  G4int id = genMap[trackID][0];
+  partId.push_back(genMap[trackID][1]);
+  processNum.push_back(genMap[trackID][2]);
+  processVol.push_back(genMap[trackID][3]);
+  while(id != 1) {
+    partId.push_back(genMap[id][1]);
+    processNum.push_back(genMap[id][2]);
+    processVol.push_back(genMap[id][3]);
+    id = genMap[id][0];
+    G4cout << "serching..." << G4endl;
+  }
+}
+
+void TrGEMAnalysis::PostSavingTrack()
+{
+  partId.clear();
+  processNum.clear();
+  processVol.clear();
+
+  kineticEnergy = 0;
+  positionX = 0;
+  positionY = 0;
+  positionZ = 0;
+  momentumX = 0;
+  momentumY = 0;
+  momentumZ = 0;
 }

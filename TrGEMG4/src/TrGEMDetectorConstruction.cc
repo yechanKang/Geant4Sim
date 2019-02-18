@@ -265,7 +265,7 @@ G4VPhysicalVolume* TrGEMDetectorConstruction::Construct() {
   G4double spessoreStrati[21] = 
   {
     0.1*mm,                    //Fake
-    35.*um,3.2*mm,35.*um,      //Drift Board
+    35.*um,50*um,35.*um,      //Drift Board
     3.*mm,                     //Drift Gap
     5.*um,50*um,5.*um,         //gem1
     1.*mm,                     //Transfer I Gap

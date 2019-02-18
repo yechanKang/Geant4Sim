@@ -11,6 +11,7 @@ class G4ParticleDefinition;
 class TFile;
 class TH1D;
 // class TNtuple;
+class TVector3;
 class TTree;
 class G4Track;
 
@@ -23,38 +24,22 @@ class TrGEMAnalysis {
 
     void SetFileName(const G4String name);
     void PrepareNewEvent(const G4Event* anEvent);
-    void PDGHisto(std::vector<G4double> PDGvector) ;
     void EndOfEvent(const G4Event* anEvent);
     void PrepareNewRun(const G4Run* aRun);
     void EndOfRun(const G4Run* aRun);
-    void AddSecondary(const G4ParticleDefinition* part);
-    void AddGapSecondary(const G4ParticleDefinition* part, G4int gapNum);
-    void AddEDep(G4double edep, G4double z);
-    void AddEDepSD(G4double z, G4int copyno);
-    void SetBeam(const G4ParticleDefinition* part, G4double energy);
-    void AddParticlesPerEvent(G4int PDGCode) ;
     
-    void SetEnergyDeposition(std::string someVolume, G4double someEdep, G4double someEdepI, G4double someTime);
-
-    void SavePrimary(G4double primaryene, G4double zinteraction);
-    void SaveGapTrack(G4int gapPart, 
+    void SavePrimary(G4int primaryPart_, G4double primaryEne_);
+    void SaveGapTrack(G4int trackId,
+                      G4int gapPart, 
                       G4int aCharge,
-                      G4int generation,
-                      std::string genprocess, 
-                      std::string genvolume, 
-                      G4double genz, 
-                      std::string volname,
-                      G4double kinene );
-    void SaveGarfieldQuantities(G4int aPdgCode,
-                                G4double aKineticEnergy,
-                                G4double aPositionX, 
-                                G4double aPositionY, 
-                                G4double aPositionZ,
-                                G4double aMomentumX, 
-                                G4double aMomentumY, 
-                                G4double aMomentumZ) ;
-
-    void SaveGeneratingTrack(G4int partCode, std::string process, G4double energy, std::string volume, G4int trackID, G4int parentID);
+                      G4double kinene,
+                      TVector3 position,
+                      TVector3 momentum);
+    void SaveGenTrack(G4int partCode,
+                      std::string process,
+                      std::string volume,
+                      G4int trackID,
+                      G4int parentID);
 
     G4int FindVolume(std::string volume);
     G4int FindGapTrackProcess(std::string process);
@@ -65,6 +50,9 @@ class TrGEMAnalysis {
     TrGEMAnalysis();
     static TrGEMAnalysis* singleton;
 
+    void PreSavingTrack(G4int trackID);
+    void PostSavingTrack();
+
     std::vector<std::string> NomeStrati;
     std::vector<std::string> posProcess;
 
@@ -72,98 +60,41 @@ class TrGEMAnalysis {
     G4int eventCounter ;
     G4String fileName;
 
-    // beam and calorimeter geometry
-    const G4ParticleDefinition* beamParticle;
-    G4double beamEnergy;
-    //G4double eCalZposition;
-
-    // simple analysis parameters
-    G4double thisEventTotEM;
-    G4double thisEventCentralEM;
-    G4double thisRunTotEM;
-    G4double thisRunTotEM2;
-    G4double thisRunCentralEM;
-    G4double thisRunCentralEM2;
-
-    // counters
-    G4int thisEventSecondaries;
-    G4int n_gamma;
-    G4int n_electron;
-    G4int n_positron;
-    G4int n_gapGamma[4];
-    G4int n_gapElectron[4];
-    G4int n_gapPositron[4];
-
-    //const G4int kMaxTrack ;
-    G4int elexevt ;
-    G4int posxevt ;
-    G4int gammaxevt ;
-    G4int secoxevt ;
-    
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<G4int> edepVolume;
-    std::vector<G4double> edep;
-    std::vector<G4double> edepI;
-    std::vector<G4double> edepTime;
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    G4double primaryEne;
-    G4double zInteraction;
-
-    G4int eleGap[4];
-    G4int posGap[4];
-    G4int chargeGap[4];
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<G4int> gapTrackPart ;
-    std::vector<G4int> gapTrackCharge ;
-    std::vector<G4int> gapTrackGeneration ;
-    std::vector<G4int> gapTrackGenProcessNum ;
-    std::vector<G4int> gapTrackVolume ;
-    std::vector<G4int> gapTrackGenVolume;
-    std::vector<G4double> gapTrackGenZ ;
-    std::vector<G4double> gapTrackEne ;
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<G4int> postTrackPart ;
-    std::vector<G4double> postTrackEne ;
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    std::vector<G4int>    generatingPartCode;
-    std::vector<G4int> generatingProcessNum ;
-    std::vector<G4double> generatingEnergy;
-    std::vector<G4int> generatingVolume;
-    std::vector<G4int> generatingIntNum;
-
-    std::map<G4int, G4int> genMap;
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
-    G4int vecProcNo ;
-    G4bool neutronSensitivity ;
-
-    // GARFIELD quantities
-    std::vector<G4int>    pdgCode ;
-
-    std::vector<G4double>  kineticEnergy ;
-
-    std::vector<G4double>  positionX ;
-    std::vector<G4double>  positionY ;
-    std::vector<G4double>  positionZ ;
-    
-    std::vector<G4double>   momentumX ;
-    std::vector<G4double>   momentumY ;
-    std::vector<G4double>   momentumZ ;
+    std::map<G4int, std::array<G4int, 4>> genMap;
     
     // std::vector<G4int>  gammaContainer;        s
 
     // ROOT objects
     TFile*    m_ROOT_file;
-    TH1D*     m_ROOT_histo0;
-    //TH1D*     m_ROOT_histo1;
-    TH1D*     m_ROOT_histo2;
-    TH1D*     m_ROOT_histo3;
-    //TNtuple*  ntuple;
-    TTree     *t ;
+    
+    TTree*    tEvent;
+    G4double primaryEne;
+    G4int    primaryPart;
+    G4int nElectron, nPositron, nGamma, nCharged;
+    G4int eleGap[4];
+    G4int posGap[4];
+    G4int chargeGap[4];
+
+    TTree*    tElectron;
+    TTree*    tPositron;
+    TTree*    tGamma;
+    TTree*    tCharged;
+
+    // Particle Info
+    std::vector<G4int> partId;
+    std::vector<G4int> processNum;
+    std::vector<G4int> processVol;
+
+    // GARFIELD quantities
+    G4double  kineticEnergy ;
+
+    G4double  positionX ;
+    G4double  positionY ;
+    G4double  positionZ ;
+    
+    G4double   momentumX ;
+    G4double   momentumY ;
+    G4double   momentumZ ;
 };
 
 #endif /* TRGEMANALYSIS_HH */

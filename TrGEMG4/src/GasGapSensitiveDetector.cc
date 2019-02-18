@@ -14,6 +14,8 @@
 #include "Geant4Sim/TrGEMG4/interface/GasGapSensitiveDetector.hh"
 #include "Geant4Sim/TrGEMG4/interface/GasGapHit.hh"
 
+#include <TVector3.h>
+
 GasGapSensitiveDetector::GasGapSensitiveDetector(G4String SDname)
 : G4VSensitiveDetector(SDname),
   charge(0),
@@ -39,7 +41,6 @@ GasGapSensitiveDetector::GasGapSensitiveDetector(G4String SDname)
   ttTrack_B.clear();
   ttTrack_Gar.clear();
   postTrack.clear();
-  container.clear();
   
   zinteraction=-5;
 }
@@ -78,10 +79,12 @@ G4bool GasGapSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory *)
   double x= track->GetPosition().getX();
   double y= track->GetPosition().getY();
   double z= track->GetPosition().getZ();
+  TVector3 position(x,y,z);
 
   double px= track->GetMomentum().getX();
   double py= track->GetMomentum().getY();
   double pz= track->GetMomentum().getZ();
+  TVector3 momentum(px, py, pz);
 
 
   G4int pdg = track->GetParticleDefinition()->GetPDGEncoding();
@@ -109,16 +112,12 @@ G4bool GasGapSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory *)
     contaInteraction=1;
   } 
 
-  container[trackIndex] = parentIndex;
-
-  G4int generation = GetGeneration(trackIndex);
-
   if( trackIndex==1 && (volName == "FakeBottom" || volName == "FakeTop")&& contaPrimary==0) {  
     //  if( trackIndex==1 ) {  
     primaryene=energy;
     contaPrimary=1;
   }
-  TrGEMAnalysis::GetInstance()->SetEnergyDeposition(volName, edep, edepI, t);
+  //TrGEMAnalysis::GetInstance()->SetEnergyDeposition(volName, edep, edepI, t);
 
   if(volName == "GasGap1" || volName == "GasGap2" || volName == "GasGap3" || volName == "GasGap4") {
     // we're in one of the gaps
@@ -131,30 +130,10 @@ G4bool GasGapSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory *)
     }
 
     if(contaSec!=9999)  {
-      TrGEMAnalysis::GetInstance()->SaveGapTrack(pdg, charge, generation, genprocess, genvolume,  genz, volName, energy );
+      TrGEMAnalysis::GetInstance()->SaveGapTrack(trackIndex, pdg, charge, energy ,position, momentum);
       contaSec=trackIndex;
       ttTrack.push_back(trackIndex);
     }  
-
-    //FOR GARFIELD
-    if(volName == "GasGap1"){
-
-      for(unsigned int T=0;T< ttTrack_Gar.size();T++){
-        if (ttTrack_Gar[T]==trackIndex){
-          contaGar=9999;
-          break;
-        }
-      }
-      if(contaGar!=9999)  {
-        // G4cout<<"New track trackIndex "<<trackIndex<<G4endl;
-        TrGEMAnalysis::GetInstance()->SaveGarfieldQuantities(pdg, energy, x, y,  z, px, py, pz );
-        contaGar=trackIndex;
-        ttTrack_Gar.push_back(trackIndex);
-        // G4cout<<trackIndex <<" trackIndex pdg "<<pdg<<" genprocess "<<genprocess<<G4endl;
-
-      }  
-
-    }//END GARFIELD
       
   }
 
@@ -190,13 +169,10 @@ void GasGapSensitiveDetector::Initialize(G4HCofThisEvent* HCE)
 
 void GasGapSensitiveDetector::EndOfEvent(G4HCofThisEvent*)
 {
-  TrGEMAnalysis::GetInstance()->SavePrimary(primaryene,zinteraction) ;
-      
   ttTrack.clear();
   ttTrack_B.clear();
   ttTrack_Gar.clear();
   postTrack.clear();
-  container.clear();
 
   contaPrimary=0;
   contaInteraction=0;
@@ -208,13 +184,4 @@ void GasGapSensitiveDetector::EndOfEvent(G4HCofThisEvent*)
   zinteraction=-5.;
  
  
-}
-
-G4int GasGapSensitiveDetector::GetGeneration(G4int index){
-  G4int i = 1;
-  while(container[index] != 0){
-    index = container[index];
-    i++;
-  }
-  return i;
 }
