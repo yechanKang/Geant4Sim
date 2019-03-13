@@ -68,6 +68,10 @@ class TrGEMAnalysis {
     TFile*    m_ROOT_file;
     
     TTree*    tEvent;
+    TTree*    tElectron;
+    TTree*    tPositron;
+    TTree*    tGamma;
+    TTree*    tCharged;
     G4double primaryEne;
     G4int    primaryPart;
     G4int nElectron, nPositron, nGamma, nCharged;
@@ -75,12 +79,8 @@ class TrGEMAnalysis {
     G4int posGap[4];
     G4int chargeGap[4];
 
-    TTree*    tElectron;
-    TTree*    tPositron;
-    TTree*    tGamma;
-    TTree*    tCharged;
-
     // Particle Info
+    std::vector<std::array<G4int, 3>> chain;
     std::vector<G4int> partId;
     std::vector<G4int> processNum;
     std::vector<G4int> processVol;

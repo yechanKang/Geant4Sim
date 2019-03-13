@@ -243,13 +243,13 @@ G4VPhysicalVolume* TrGEMDetectorConstruction::Construct() {
 		
   for(size_t A=1; A<21; A++) { 
     NomeStratiLog[A]=NomeStrati[A]+"Log";
-	}
+  }
 		
   //const char* NomeStratiLog[21]={*NomeStratiLog1};
   G4Material* MatStrati[21]=
   {
     fAirMat,                    //Fake
-    fCuMat,fFR4Mat,fCuMat,      //Drift Board
+    fCuMat,fKAPTONMat,fCuMat,      //Drift Board
     fGasMat,                    //Drift Gap
     fCuMat,fKAPTONMat,fCuMat,   //gem1
     fGasMat,                    //Transfer I Gap
@@ -265,7 +265,7 @@ G4VPhysicalVolume* TrGEMDetectorConstruction::Construct() {
   G4double spessoreStrati[21] = 
   {
     0.1*mm,                    //Fake
-    35.*um,3.2*mm,35.*um,      //Drift Board
+    5.*um,50*um,5.*um,         //Drift Board
     3.*mm,                     //Drift Gap
     5.*um,50*um,5.*um,         //gem1
     1.*mm,                     //Transfer I Gap
