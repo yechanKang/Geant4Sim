@@ -130,7 +130,7 @@ G4bool GasGapSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory *)
     }
 
     if(contaSec!=9999)  {
-      TrGEMAnalysis::GetInstance()->SaveGapTrack(trackIndex, pdg, charge, energy ,position, momentum);
+      TrGEMAnalysis::GetInstance()->SaveGapTrack(trackIndex, pdg, charge, volName, energy ,position, momentum);
       contaSec=trackIndex;
       ttTrack.push_back(trackIndex);
     }  

@@ -7,7 +7,7 @@ from math import ceil
 application = 'GeantAnalysis'
 jobName = sys.argv[1]
 
-fileList = '/cms/scratch/yckang/geant4/CMSSW_10_3_0_pre1/src/Geant4Sim/TrGEMG4/test/data/neutron_dataset.txt'
+fileList = 'neutron_dataset.txt'
 
 cmsswBase = os.environ['CMSSW_BASE']
 username = "yekang"
@@ -35,13 +35,13 @@ for section in range(nSection):
     end = min(begin + maxFiles, nFiles)
     FileNames = files[begin:end]
     FileNamesStr = " ".join(str(i) for i in FileNames)
-    distFileName = "root://cms-xrdr.sdfarm.kr:1094///xrd/store/user/yekang/TrGEMG4/postProc/%s/%s_%i.root"%(jobName, jobName, section)
+    distFileName = "root://uosaf0007.sscc.uos.ac.kr:1094//xrootd/store/user/yekang/TrGEMG4/postProc/%s/%s_%i.root"%(jobName, jobName, section)
 
     print "@@ Writing run script..."
     jds = "%s/submit.jds" %Dirname 
     fout = open(jds, "w")
     print>>fout, "# Job description file for condor job"
-    print>>fout, """executable = /cms/scratch/yckang/geant4/CMSSW_10_3_0_pre1/src/Geant4Sim/TrGEMG4/test/GeantAnalysis
+    print>>fout, """executable = /cms/ldap_home/yckang/gSim/cpluos/src/Geant4Sim/TrGEMG4/test/Analyser/GeantAnalysis
 universe   = vanilla
 
 log = condor.log

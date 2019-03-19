@@ -1,4 +1,4 @@
-#include "Geant4Sim/TrGEMG4/interface/TrGEMDetectorConstruction.hh"
+#include "Geant4Sim/TrGEMG4/interface/GdGEMDetectorConstruction.hh"
 #include "Geant4Sim/TrGEMG4/interface/GasGapSensitiveDetector.hh"
 
 #include "G4NistManager.hh"
@@ -31,9 +31,9 @@
 #include "G4MagIntegratorStepper.hh"
 #include "G4MagIntegratorDriver.hh"
 
-TrGEMDetectorConstruction::TrGEMDetectorConstruction() :
+GdGEMDetectorConstruction::GdGEMDetectorConstruction() :
   fFR4Mat(0), fGasMat(0), fEmptyMat(0), //fGasDetectorCuts(0), 
-  fAirMat(0), fCuMat(0),fKAPTONMat(0),
+  fAirMat(0), fCuMat(0),fKAPTONMat(0),fGadolinium(0),
   tripleGemThinBase(0), tripleGemLargeBase(0), tripleGemHeight(0)
     
 {
@@ -54,13 +54,13 @@ TrGEMDetectorConstruction::TrGEMDetectorConstruction() :
 
 }
 
-TrGEMDetectorConstruction::~TrGEMDetectorConstruction() {
+GdGEMDetectorConstruction::~GdGEMDetectorConstruction() {
 
   // delete fGasDetectorCuts ;
 
 }
 
-void TrGEMDetectorConstruction::DefineMaterials() {
+void GdGEMDetectorConstruction::DefineMaterials() {
 
   G4NistManager* manager = G4NistManager::Instance() ;
   // define Elements
@@ -140,10 +140,11 @@ void TrGEMDetectorConstruction::DefineMaterials() {
   // Choice of the gas
   //fGasMat = ArCO2CF4 ;
   fGasMat = ArCO2;
+  fGadolinium = manager->FindOrBuildMaterial("G4_Gd");
 
 }
 
-G4VPhysicalVolume* TrGEMDetectorConstruction::Construct() {
+G4VPhysicalVolume* GdGEMDetectorConstruction::Construct() {
 
 
   // //electric field
@@ -224,8 +225,9 @@ G4VPhysicalVolume* TrGEMDetectorConstruction::Construct() {
 // 
 // //____________________________________________________________________________________________________________
 	       
-  std::string NomeStrati[21]= 
+  std::string NomeStrati[22]= 
   {
+    "Gadolinium",                                   //Gadolinium
     "FakeBottom",                                   //Fake
     "DriftCopper1","DriftBoard","DriftCopper2",     //Drift Board
     "GasGap1",                                      //Drift Gap
@@ -239,17 +241,18 @@ G4VPhysicalVolume* TrGEMDetectorConstruction::Construct() {
     "FakeTop"                                       //Fake
   };
              
-  std::string NomeStratiLog[21];
+  std::string NomeStratiLog[22];
 		
-  for(size_t A=1; A<21; A++) { 
+  for(size_t A=1; A<22; A++) { 
     NomeStratiLog[A]=NomeStrati[A]+"Log";
   }
 		
   //const char* NomeStratiLog[21]={*NomeStratiLog1};
-  G4Material* MatStrati[21]=
+  G4Material* MatStrati[22]=
   {
+    fGadolinium,                //Gd
     fAirMat,                    //Fake
-    fCuMat,fKAPTONMat,fCuMat,      //Drift Board
+    fCuMat,fKAPTONMat,fCuMat,   //Drift Board
     fGasMat,                    //Drift Gap
     fCuMat,fKAPTONMat,fCuMat,   //gem1
     fGasMat,                    //Transfer I Gap
@@ -262,8 +265,9 @@ G4VPhysicalVolume* TrGEMDetectorConstruction::Construct() {
   };
 
 
-  G4double spessoreStrati[21] = 
+  G4double spessoreStrati[22] = 
   {
+    1*mm,
     0.1*mm,                    //Fake
     5.*um,50*um,5.*um,         //Drift Board
     3.*mm,                     //Drift Gap
@@ -283,7 +287,7 @@ G4VPhysicalVolume* TrGEMDetectorConstruction::Construct() {
   G4Trd* strato;
   G4LogicalVolume* logicStrato;
 		
-  for(G4int lyr=0;lyr<21;lyr++)
+  for(G4int lyr=0;lyr<22;lyr++)
   {
     strato=Trapezoid(NomeStrati[lyr], spessoreStrati[lyr]);
     logicStrato = new G4LogicalVolume (strato, MatStrati[lyr],NomeStratiLog[lyr]);   
@@ -305,7 +309,7 @@ G4VPhysicalVolume* TrGEMDetectorConstruction::Construct() {
 
 }
 
-G4Trd* TrGEMDetectorConstruction::Trapezoid(G4String name, G4double width) {
+G4Trd* GdGEMDetectorConstruction::Trapezoid(G4String name, G4double width) {
   G4Trd* shape = new G4Trd(name,
                            width/2, width/2,
                            tripleGemThinBase/2,
@@ -314,7 +318,7 @@ G4Trd* TrGEMDetectorConstruction::Trapezoid(G4String name, G4double width) {
   return shape ;
 }
 
-void TrGEMDetectorConstruction::PlaceGeometry(G4RotationMatrix *pRot, G4ThreeVector tlate, G4LogicalVolume* pMotherLogical) {
+void GdGEMDetectorConstruction::PlaceGeometry(G4RotationMatrix *pRot, G4ThreeVector tlate, G4LogicalVolume* pMotherLogical) {
 
   G4double XTranslation = 0 ;
 

@@ -32,6 +32,7 @@ class TrGEMAnalysis {
     void SaveGapTrack(G4int trackId,
                       G4int gapPart, 
                       G4int aCharge,
+                      G4String volume,
                       G4double kinene,
                       TVector3 position,
                       TVector3 momentum);
@@ -80,7 +81,7 @@ class TrGEMAnalysis {
     G4int chargeGap[4];
 
     // Particle Info
-    std::vector<std::array<G4int, 3>> chain;
+    G4int gap;
     std::vector<G4int> partId;
     std::vector<G4int> processNum;
     std::vector<G4int> processVol;

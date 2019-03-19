@@ -172,7 +172,7 @@ TH1D* HistoMaker::SensitivityElectron(Int_t gap)
   auto nBins = toBin - fromBin + 1;
 
   TH1D* sensitivityPlot = new TH1D("EleSen", "Sensitivity", nBins, -10, +4);
-  sensitivityPlot->GetYaxis()->SetTitle("Response Rate [%]");
+  sensitivityPlot->GetYaxis()->SetTitle("Sensitivity");
   BinLogX(sensitivityPlot);
   TH1D* eleGap = GetHisto1D(Form("EleGap %i", gap));
 
@@ -183,7 +183,7 @@ TH1D* HistoMaker::SensitivityElectron(Int_t gap)
     Int_t entry = eleGap->GetBinContent(i);
     for(Int_t j = 0; j < entry; j++)
     { 
-      sensitivityPlot->Fill(energy, 100./totEntry);
+      sensitivityPlot->Fill(energy, 1./totEntry);
     }
   }
   return sensitivityPlot;

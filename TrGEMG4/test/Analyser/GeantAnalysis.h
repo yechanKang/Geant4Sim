@@ -34,21 +34,33 @@ private:
   // TH2D* hGenerationLow;
   // TH2D* hGenerationHigh;
 
-  // Reader
-  TTree* fChain;
-
 private:
   Double_t primaryEne;
-  Int_t EleGap[4];
-  Int_t PosGap[4];
-  Int_t ChargeGap[4];
 
-  vector<Int_t> *gapTrackPart = 0;
-  vector<Int_t> *gapTrackCharge = 0;
-  vector<Int_t> *gapTrackIntNum = 0;
-  vector<Int_t> *gapTrackGenProcessNum = 0;
-  vector<Int_t> *gapTrackVolume = 0;
-  vector<Double_t> *gapTrackEne = 0;
+  TTree* tEvent;
+
+  int eleGap[4];
+  int posGap[4];
+  int chargeGap[4];
+
+  int nElectron;
+  int nPositron;
+  int nGamma;
+  int nCharged;
+  
+  TTree* tElectron;
+  TTree* tPositron;
+  TTree* tGamma;
+  TTree* tCharged;
+
+  int            gap;
+  vector<int>    *partId        = 0;
+  vector<int>    *processNum    = 0;
+  vector<int>    *processVol    = 0;
+  double kineticEnergy;
+
+  double positionX, positionY, positionZ;
+  double momentumX, momentumY, momentumZ;
 
   vector<string> NomeStrati;
   vector<string> posProcess;
@@ -116,15 +128,11 @@ GeantAnalysis::GeantAnalysis(string temp)
 
   BinLogX(hPrimaryEne);
 
-
-
   hPrimaryProcess = new TH2D("PrimaryProcess","PrimaryProcess",100, -10, +4, posProcess.size(), 0, posProcess.size());
   hElectronGenProcess = new TH2D("ElectronGenProcess","ElectronGenProcess",100, -10, +4, posProcess.size(), 0, posProcess.size());
 
   BinLogX(hPrimaryProcess);
   BinLogX(hElectronGenProcess);
-  
-
 }
 
 GeantAnalysis::~GeantAnalysis()
@@ -137,23 +145,60 @@ GeantAnalysis::~GeantAnalysis()
 void GeantAnalysis::SetFile(string fileName)
 {
   TFile* inFile = TFile::Open(fileName.c_str(), "READ");
-  fChain = (TTree*) inFile->Get("Event");
+  tEvent = (TTree*) inFile->Get("Event");
 
-  fChain->SetBranchAddress("primaryEne", &primaryEne);
-  fChain->SetBranchAddress("EleGap", EleGap);
-  fChain->SetBranchAddress("PosGap", PosGap);
-  fChain->SetBranchAddress("ChargeGap", ChargeGap);
+  tEvent->SetBranchAddress("primaryEne", &primaryEne);
+  tEvent->SetBranchAddress("EleGap", eleGap);
+  tEvent->SetBranchAddress("PosGap", posGap);
+  tEvent->SetBranchAddress("ChargeGap", chargeGap);
+  tEvent->SetBranchAddress("nElectron", &nElectron);
+  tEvent->SetBranchAddress("nPositron", &nPositron);
+  tEvent->SetBranchAddress("nGamma",    &nGamma);
+  tEvent->SetBranchAddress("nCharged",  &nCharged);
 
-  fChain->SetBranchAddress("gapTrackPart", &gapTrackPart);
-  fChain->SetBranchAddress("gapTrackCharge", &gapTrackCharge);
-  fChain->SetBranchAddress("gapTrackIntNum", &gapTrackIntNum);
-  fChain->SetBranchAddress("gapTrackGenProcessNum", &gapTrackGenProcessNum);
-  fChain->SetBranchAddress("gapTrackEne", &gapTrackEne);
-  fChain->SetBranchAddress("gapTrackVolume", &gapTrackVolume);
-}
+  tElectron = (TTree*) inFile->Get("Electron");
+  tElectron->SetBranchAddress("gap",      &gap);
+  tElectron->SetBranchAddress("partId",   &partId);
+  tElectron->SetBranchAddress("processVol", &processVol);
+  tElectron->SetBranchAddress("processNum", &processNum);
+  tElectron->SetBranchAddress("kineticEnergy", &kineticEnergy);
+  tElectron->SetBranchAddress("positionX", &positionX);
+  tElectron->SetBranchAddress("positionY", &positionY);
+  tElectron->SetBranchAddress("positionZ", &positionZ);
+  tElectron->SetBranchAddress("momentumX", &momentumX);
+  tElectron->SetBranchAddress("momentumY", &momentumY);
+  tElectron->SetBranchAddress("momentumZ", &momentumZ);
 
-void GeantAnalysis::ResetBranch()
-{
+  tPositron = (TTree*) inFile->Get("Positron");
+  tPositron->SetBranchAddress("gap",      &gap);
+  tPositron->SetBranchAddress("partId",   &partId);
+  tPositron->SetBranchAddress("processVol", &processVol);
+  tPositron->SetBranchAddress("processNum", &processNum);
+  tPositron->SetBranchAddress("kineticEnergy", &kineticEnergy);
+  tPositron->SetBranchAddress("positionX", &positionX);
+  tPositron->SetBranchAddress("positionY", &positionY);
+  tPositron->SetBranchAddress("positionZ", &positionZ);
+  tPositron->SetBranchAddress("momentumX", &momentumX);
+  tPositron->SetBranchAddress("momentumY", &momentumY);
+  tPositron->SetBranchAddress("momentumZ", &momentumZ);
+
+  tGamma = (TTree*) inFile->Get("Gamma");
+  tGamma->SetBranchAddress("gap",      &gap);
+  tGamma->SetBranchAddress("partId",   &partId);
+  tGamma->SetBranchAddress("processVol", &processVol);
+  tGamma->SetBranchAddress("processNum", &processNum);
+  tGamma->SetBranchAddress("kineticEnergy", &kineticEnergy);
+  tGamma->SetBranchAddress("positionX", &positionX);
+  tGamma->SetBranchAddress("positionY", &positionY);
+  tGamma->SetBranchAddress("positionZ", &positionZ);
+  tGamma->SetBranchAddress("momentumX", &momentumX);
+  tGamma->SetBranchAddress("momentumY", &momentumY);
+  tGamma->SetBranchAddress("momentumZ", &momentumZ);
+
+  tCharged = (TTree*) inFile->Get("Charged");
+  tCharged->SetBranchAddress("partId",   &partId);
+  tCharged->SetBranchAddress("processVol", &processVol);
+  tCharged->SetBranchAddress("processNum", &processNum);
 }
 
 void GeantAnalysis::BinLogX(TH1* h)

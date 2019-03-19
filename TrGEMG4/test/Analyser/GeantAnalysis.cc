@@ -7,33 +7,27 @@ using namespace std;
 
 void GeantAnalysis::Analysis()
 {
-  Long64_t nEntries = fChain->GetEntries();
-  ResetBranch();
+  Long64_t nEntries = tEvent->GetEntries();
+  int iElectron = 0;
+  int iPositron = 0;
+  int iGamma    = 0;
   for(Long64_t i = 0; i < nEntries; i++)
   {
-    bool eleGap = true;
-    bool posGap = true;
-    bool chargeGap = true;
-    ResetBranch();
-    fChain->GetEntry(i);
+    tEvent->GetEntry(i);
     hPrimaryEne->Fill(primaryEne);
-    for (int i = 0; i < 4; i++) {
-      if(EleGap[i] == 1 && eleGap)       hEleGap[i]->Fill(primaryEne), eleGap = false;
-      if(PosGap[i] == 1 && posGap)       hPosGap[i]->Fill(primaryEne), posGap = false;
-      if(ChargeGap[i] == 1 && chargeGap) hChargeGap[i]->Fill(primaryEne), chargeGap = false;
+
+    for(int i = 0; i < nElectron; i++)
+    {
+      tElectron->GetEntry(i);
+      if (gap == 1 or gap == 0) hEleGap[0]->Fill(primaryEne);
+      iElectron++;
     }
 
-    for(UInt_t i = 0 ; i < gapTrackPart->size(); i++)
+    for(int i = 0; i < nPositron; i++)
     {
-      int num = findVolume((*gapTrackVolume)[i]);
-      if((*gapTrackPart)[i] == 11) 
-      {
-        hEleEne[num]->Fill((*gapTrackEne)[i]);
-        hElectronGenProcess->Fill(primaryEne, (*gapTrackGenProcessNum)[i]);
-      }
-      if((*gapTrackPart)[i] == -11) hPosEne[num]->Fill((*gapTrackEne)[i]);
-      if((*gapTrackCharge)[i] != 0) hChargeEne[num]->Fill((*gapTrackEne)[i]);
-      if((*gapTrackIntNum)[i] == 2) hPrimaryProcess->Fill(primaryEne,(*gapTrackGenProcessNum)[i]);
+      tPositron->GetEntry(i);
+      hPosGap[gap]->Fill(primaryEne);
+      iPositron++;
     }
   }
 }

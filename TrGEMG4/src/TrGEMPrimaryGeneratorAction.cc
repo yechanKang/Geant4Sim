@@ -60,7 +60,11 @@ TrGEMPrimaryGeneratorAction::TrGEMPrimaryGeneratorAction(char* partName_) : part
 
   std::string temp = partName;
   if (temp == "neutron") eneRange = 12;
-  else if (temp == "gamma") eneRange = 6;
+  else if (temp == "gamma") eneRange = 9;
+  else if (temp == "e-") eneRange = 9;
+  else if (temp == "e+") eneRange = 9;
+  else if (temp == "alpha") eneRange = 12;
+  else if (temp == "mu-") eneRange = 12;
   else throw;
 
   fParticleGun  = new G4ParticleGun(particlen,n_particle);

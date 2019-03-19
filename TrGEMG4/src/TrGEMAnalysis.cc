@@ -102,7 +102,8 @@ void TrGEMAnalysis::PrepareNewRun(const G4Run* /*aRun*/)
   tEvent->Branch("nCharged",  &nCharged,  "nCharged/I" );
 
   tElectron = new TTree("Electron", "Electron Info");
-  tElectron->Branch("partId",   &partId);
+  tElectron->Branch("gap",        &gap, "gap/I");
+  tElectron->Branch("partId",     &partId);
   tElectron->Branch("processVol", &processVol);
   tElectron->Branch("processNum", &processNum);
   tElectron->Branch("kineticEnergy", &kineticEnergy);
@@ -114,6 +115,7 @@ void TrGEMAnalysis::PrepareNewRun(const G4Run* /*aRun*/)
   tElectron->Branch("momentumZ", &momentumZ, "momentumZ/D");
   
   tPositron = new TTree("Positron", "Positron Info");
+  tPositron->Branch("gap",        &gap, "gap/I");
   tPositron->Branch("partId",   &partId);
   tPositron->Branch("processVol", &processVol);
   tPositron->Branch("processNum", &processNum);
@@ -126,6 +128,7 @@ void TrGEMAnalysis::PrepareNewRun(const G4Run* /*aRun*/)
   tPositron->Branch("momentumZ", &momentumZ, "momentumZ/D");
   
   tGamma = new TTree("Gamma", "Gamma Info");
+  tGamma->Branch("gap",        &gap, "gap/I");
   tGamma->Branch("partId",   &partId);
   tGamma->Branch("processVol", &processVol);
   tGamma->Branch("processNum", &processNum);
@@ -194,13 +197,15 @@ void TrGEMAnalysis::SaveGapTrack(
   G4int trackId,
   G4int gapPart, 
   G4int gapCharge,
+  G4String volume,
   G4double kinene, 
   TVector3 position, 
   TVector3 momentum ) 
 {
   if (trackId == 1) return;
+  G4int volNum = FindVolume(volume);
   G4int currentNum = genMap[trackId][3];
-  G4int gapNum = currentNum / 4 - 1;
+  gap = volNum / 4 - 1;
   kineticEnergy = kinene;
   positionX = position.x();
   positionY = position.y();
@@ -212,12 +217,12 @@ void TrGEMAnalysis::SaveGapTrack(
   if (gapPart == 11)
   {
     nElectron++;
-    eleGap[gapNum]++;
+    eleGap[gap]++;
     tElectron->Fill();
   } else if (gapPart == -11)
   {
     nPositron++;
-    posGap[gapNum]++;
+    posGap[gap]++;
     tPositron->Fill();
   } else if (gapPart == 22)
   {
@@ -226,7 +231,7 @@ void TrGEMAnalysis::SaveGapTrack(
   } else if (gapCharge != 0) 
   {
     nCharged++;
-    chargeGap[gapNum]++;
+    chargeGap[gap]++;
     tCharged->Fill();
   }
   PostSavingTrack();
@@ -290,7 +295,6 @@ void TrGEMAnalysis::PreSavingTrack(G4int trackID)
     processNum.push_back(genMap[id][2]);
     processVol.push_back(genMap[id][3]);
     id = genMap[id][0];
-    G4cout << "serching..." << G4endl;
   }
 }
 

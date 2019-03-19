@@ -43,6 +43,7 @@ int main(int argc, char** argv) {
   G4UImanager* UImanager = G4UImanager::GetUIpointer();
 
   G4String temp = argv[2];
+  //UImanager->ApplyCommand("/rur/setCut 1 cm");
   TrGEMAnalysis::GetInstance()->SetFileName(temp);
   G4String command = "/run/beamOn ";
   temp = argv[3];
