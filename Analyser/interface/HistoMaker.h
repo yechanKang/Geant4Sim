@@ -22,22 +22,23 @@ private:
   TH1D* GetHisto1D(std::string);
   TH2D* GetHisto2D(std::string);
 
+  void BinLogX(TH1* h);
+  void BinLogX(TH2* h);
+  void DivideHist(TH1D*);
+
 public:
   HistoMaker(std::string fileName);
   ~HistoMaker();
 
   TH1D* PrimaryEnergy();
 
-  TH1D* SensitivityElectron(Int_t nBins);
-  TH1D* SensitivityCharge(Int_t nBins);
-  // TH1D* ElectronEnergyDist(Int_t nBins);
-  // TH1D* ChargeEnergyDist(Int_t nBins);
+  TH1D* SensitivityElectron(Int_t gap);
+  TH1D* SensitivityCharge(Int_t gap);
+  TH2D* ElectronEnergyDist(Int_t gap);
+  TH1D* ChargeEnergyDist(Int_t gap);
   
   TH2D* NeutronProcess(Int_t nXbins);
   TH2D* ElectronProcess(Int_t nXbins);
-
-  void BinLogX(TH1* h);
-  void BinLogX(TH2* h);
 };
 
 HistoMaker::HistoMaker(std::string fileName)
@@ -162,50 +163,36 @@ TH1D* HistoMaker::PrimaryEnergy()
   return primaryDist;
 }
 
+void HistoMaker::DivideHist(TH1D* h)
+{
+  h->Sumw2();
+  h->Divide(entryCount);
+  h->SetStats(0);
+}
+
 TH1D* HistoMaker::SensitivityElectron(Int_t gap)
 {
-  TAxis* axis = entryCount->GetXaxis();
-  Double_t from = axis->GetXmin();
-  Double_t to = axis->GetXmax();
-  Int_t fromBin = axis->FindBin(from);
-  Int_t toBin = axis->FindBin(to);
-  auto nBins = toBin - fromBin + 1;
-
-  TH1D* sensitivityPlot = new TH1D("EleSen", "Sensitivity", nBins, -10, +4);
+  TH1D* sensitivityPlot = new TH1D(*GetHisto1D(Form("EleGap %i", gap)));
   sensitivityPlot->GetYaxis()->SetTitle("Sensitivity");
-  BinLogX(sensitivityPlot);
-  TH1D* eleGap = GetHisto1D(Form("EleGap %i", gap));
-
-  for(Int_t i = 0; i < nBins; i++)
-  {
-    Int_t totEntry = entryCount->GetBinContent(i);
-    Double_t energy = entryCount->GetBinCenter(i);
-    Int_t entry = eleGap->GetBinContent(i);
-    for(Int_t j = 0; j < entry; j++)
-    { 
-      sensitivityPlot->Fill(energy, 1./totEntry);
-    }
-  }
+  DivideHist(sensitivityPlot);
   return sensitivityPlot;
 }
 
-TH1D* HistoMaker::SensitivityCharge(Int_t nBins)
+TH2D* HistoMaker::ElectronEnergyDist(Int_t gap)
 {
-  TH1D* sensitivityPlot = new TH1D("ChargeSen", "Sensitivity", nBins, -10, +4);
-  sensitivityPlot->GetYaxis()->SetTitle("Response Rate [%]");
-  BinLogX(sensitivityPlot);
-  TH1D* eleGap = GetHisto1D("ChargeGap");
+  auto hist = new TH2D(*GetHisto2D(Form("EleEne %i", gap)));
+  hist->GetYaxis()->SetTitle("Sensitivity");
+  hist->SetTitle(";Primary Particle Energy[MeV];Secondary Electron Energy[MeV]");
+  hist->Sumw2();
+  hist->Divide(GetHisto1D(Form("EleGap %i", gap)));
+  return hist;
+}
 
-  for(Int_t i = 0; i < nBins; i++)
-  {
-    Int_t totEntry = entryCount->GetBinContent(i);
-    Double_t energy = entryCount->GetBinCenter(i);
-    Int_t entry = eleGap->GetBinContent(i);
-    for(Int_t j = 0; j < entry; j++)
-    { 
-      sensitivityPlot->Fill(energy, 100./totEntry);
-    }
-  }
+TH1D* HistoMaker::SensitivityCharge(Int_t gap)
+{
+  TH1D* sensitivityPlot = new TH1D(*GetHisto1D(Form("ChargeGap %i", gap)));
+  sensitivityPlot->GetYaxis()->SetTitle("Sensitivity");
+  DivideHist(sensitivityPlot);
   return sensitivityPlot;
 }
 

@@ -1,5 +1,6 @@
 #include "Geant4Sim/TrGEMG4/interface/TrGEMDetectorConstruction.hh"
 #include "Geant4Sim/TrGEMG4/interface/GasGapSensitiveDetector.hh"
+#include "Geant4Sim/TrGEMG4/data/Geometry.h"
 
 #include "G4NistManager.hh"
 #include "G4SDManager.hh"
@@ -224,32 +225,17 @@ G4VPhysicalVolume* TrGEMDetectorConstruction::Construct() {
 // 
 // //____________________________________________________________________________________________________________
 	       
-  std::string NomeStrati[21]= 
-  {
-    "FakeBottom",                                   //Fake
-    "DriftCopper1","DriftBoard","DriftCopper2",     //Drift Board
-    "GasGap1",                                      //Drift Gap
-    "Gem1Copper1","Gem1","Gem1Copper2",             //gem1
-    "GasGap2",                                      //Transfer I Gap
-    "Gem2Copper1","Gem2","Gem2Copper2",             //gem2
-    "GasGap3",                                      //Transfer II Gap
-    "Gem3Copper1","Gem3","Gem3Copper2",             //gem3
-    "GasGap4",                                      //Induction Gap
-    "ReadCopper1","ReadoutBoard","ReadCopper2",     //Readout Board
-    "FakeTop"                                       //Fake
-  };
-             
-  std::string NomeStratiLog[21];
+  std::vector<std::string> NomeStrati = Geometry::NomeStrati;
+  std::vector<std::string> NomeStratiLog;
 		
-  for(size_t A=1; A<21; A++) { 
-    NomeStratiLog[A]=NomeStrati[A]+"Log";
+  for(auto nome : NomeStrati) { 
+    NomeStratiLog.push_back(nome+"Log");
   }
 		
-  //const char* NomeStratiLog[21]={*NomeStratiLog1};
-  G4Material* MatStrati[21]=
+  std::vector<G4Material*> MatStrati=
   {
     fAirMat,                    //Fake
-    fCuMat,fKAPTONMat,fCuMat,      //Drift Board
+    fCuMat,fFR4Mat,fCuMat,      //Drift Board
     fGasMat,                    //Drift Gap
     fCuMat,fKAPTONMat,fCuMat,   //gem1
     fGasMat,                    //Transfer I Gap
@@ -262,10 +248,10 @@ G4VPhysicalVolume* TrGEMDetectorConstruction::Construct() {
   };
 
 
-  G4double spessoreStrati[21] = 
+  std::vector<G4double> spessoreStrati = 
   {
     0.1*mm,                    //Fake
-    5.*um,50*um,5.*um,         //Drift Board
+    35.*um,3.2*mm,35.*um,      //Drift Board
     3.*mm,                     //Drift Gap
     5.*um,50*um,5.*um,         //gem1
     2.*mm,                     //Transfer I Gap
@@ -283,7 +269,7 @@ G4VPhysicalVolume* TrGEMDetectorConstruction::Construct() {
   G4Trd* strato;
   G4LogicalVolume* logicStrato;
 		
-  for(G4int lyr=0;lyr<21;lyr++)
+  for(unsigned int lyr=0; lyr < NomeStrati.size(); lyr++)
   {
     strato=Trapezoid(NomeStrati[lyr], spessoreStrati[lyr]);
     logicStrato = new G4LogicalVolume (strato, MatStrati[lyr],NomeStratiLog[lyr]);   

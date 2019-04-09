@@ -7,14 +7,14 @@ from math import ceil
 application = 'GeantAnalysis'
 jobName = sys.argv[1]
 
-fileList = 'neutron_dataset.txt'
+fileList = 'gamma_dataset.txt'
 
 cmsswBase = os.environ['CMSSW_BASE']
 username = "yekang"
 dirName = jobName
 maxFiles = 10
     
-Dirname = "%s/src/Geant4Sim/TrGEMG4/test/%s"%(cmsswBase,jobName)
+Dirname = "%s/src/Geant4Sim/Analyser/test/Batch/%s"%(cmsswBase,jobName)
 if os.path.isdir(Dirname):
     print "ERROR: output directory already existing."
     sys.exit()
@@ -35,13 +35,13 @@ for section in range(nSection):
     end = min(begin + maxFiles, nFiles)
     FileNames = files[begin:end]
     FileNamesStr = " ".join(str(i) for i in FileNames)
-    distFileName = "root://uosaf0007.sscc.uos.ac.kr:1094//xrootd/store/user/yekang/TrGEMG4/postProc/%s/%s_%i.root"%(jobName, jobName, section)
+    distFileName = "root://uosaf0007.sscc.uos.ac.kr:1094//xrootd/store/user/yekang/TrGEMG4/GE11/postProc/%s/%s_%i.root"%(jobName, jobName, section)
 
     print "@@ Writing run script..."
     jds = "%s/submit.jds" %Dirname 
     fout = open(jds, "w")
     print>>fout, "# Job description file for condor job"
-    print>>fout, """executable = /cms/ldap_home/yckang/gSim/cpluos/src/Geant4Sim/TrGEMG4/test/Analyser/GeantAnalysis
+    print>>fout, """executable = {0}/bin/slc6_amd64_gcc700/GeantAnalysis
 universe   = vanilla
 
 log = condor.log

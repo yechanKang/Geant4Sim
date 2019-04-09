@@ -1,0 +1,7 @@
+<bin name="GeantAnalysis" file="GeantAnalysis.cc">
+  <use name="root"/>
+  <use name="rootxml"/>
+  <lib name="Eve"/>
+  <lib name="EG"/>
+  <use name="Geant4Sim/Analyser"/>
+</bin>

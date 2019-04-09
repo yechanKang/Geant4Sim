@@ -1,4 +1,5 @@
 #include "Geant4Sim/TrGEMG4/interface/TrGEMAnalysis.hh"
+#include "Geant4Sim/TrGEMG4/data/FTFP_BERT.h"
 
 #include "G4UnitsTable.hh"
 #include "G4ParticleDefinition.hh"
@@ -48,19 +49,7 @@ TrGEMAnalysis::TrGEMAnalysis()
     "ReadCopper1","ReadoutBoard","ReadCopper2",     //Readout Board    --- 17,18,19
     "FakeTop"                                       //Fake             --- 20
   };
-  posProcess=                                       //It comes from FTFP_BERT_HP
-  {
-    "Transportation", "msc", "hIoni", "ionIoni", "hBrems", "hPairProd", "CoulombScat",
-    "eIoni", "eBrem", "annihil", "phot", "compt", "conv", "muIoni", "muBrems", "muPairProd",
-    "photonNuclear", "electronNuclear", "positronNuclear", "muonNuclear", "Decay", "hadElastic",
-    "neutronInelastic", "nCapture", "nFission", "protonInelastic", 
-    "pi+Inelastic", "pi-Inelastic", "kaon+Inelastic", "kaon-Inelastic", "kaon0LInelastic", "kaon0SInelastic",
-    "lambdaInelastic", "anti-lambdaInelastic", "sigma-Inelastic", "anti_sigma-Inelastic", "sigma+Inelastic",
-    "anti_sigma+Inelastic", "xi-Inelastic", "anti_xi-Inelastic", "xi0Inelastic", "anti_xi0Inelastic",
-    "omega-Inelastic", "anti_omega-Inelastic", "anti_protonInelastic", "anti_neutronInelastic", "anti_deuteronInelastic",
-    "anti_tritonInelastic", "anti_He3Inelastic", "anti_alphaInelastic", "hFritiofCaptureAtRest", "hBertiniCaptureAtRest",
-    "muMinusCaptureAtRest", "dInelastic", "tInelastic", "He3Inelastic", "alphaInelastic", "ionInelastic ",
-  };
+  posProcess=FTFP_BERT::processes;                  //It comes from FTFP_BERT_HP
 }
 
 void TrGEMAnalysis::SetFileName(const G4String name)

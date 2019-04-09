@@ -1,6 +1,9 @@
 #ifndef GeantAnalysis_h
 #define GeantAnalysis_h
 
+#include "Geant4Sim/TrGEMG4/data/Geometry.h"
+#include "Geant4Sim/TrGEMG4/data/FTFP_BERT.h"
+
 #include <TROOT.h>
 #include <TMath.h>
 #include <TFile.h>
@@ -18,16 +21,12 @@ private:
   // Writer
   TFile* fOutput;
 
-  TTree* fTree;
-
   TH1D* hPrimaryEne;
   TH1D* hEleGap[4];
   TH1D* hPosGap[4];
   TH1D* hChargeGap[4];
 
-  TH1D* hEleEne[4];
-  TH1D* hPosEne[4];
-  TH1D* hChargeEne[4];
+  TH2D* hEleEne[4];
 
   TH2D* hPrimaryProcess;
   TH2D* hElectronGenProcess;
@@ -74,6 +73,7 @@ public:
 
   void BinLogX(TH1* h);
   void BinLogX(TH2* h);
+  void BinLogY(TH2* h);
   int findVolume(int);
 };
 
@@ -82,48 +82,21 @@ public:
 #ifdef GeantAnalysis_cxx
 GeantAnalysis::GeantAnalysis(string temp)
 {
-  NomeStrati = {
-    "FakeBottom",                                   //Fake
-    "DriftCopper1","DriftBoard","DriftCopper2",     //Drift Board
-    "GasGap1",                                      //Drift Gap
-    "Gem1Copper1","Gem1","Gem1Copper2",             //gem1
-    "GasGap2",                                      //Transfer I Gap
-    "Gem2Copper1","Gem2","Gem2Copper2",             //gem2
-    "GasGap3",                                      //Transfer II Gap
-    "Gem3Copper1","Gem3","Gem3Copper2",             //gem3
-    "GasGap4",                                      //Induction Gap
-    "ReadCopper1","ReadoutBoard","ReadCopper2",     //Readout Board
-    "FakeTop"                                       //Fake
-  };
-  posProcess = {                                    //It comes from FTFP_BERT_HP
-    "Transportation", "msc", "hIoni", "ionIoni", "hBrems", "hPairProd", "CoulombScat",
-    "eIoni", "eBrem", "annihil", "phot", "compt", "conv", "muIoni", "muBrems", "muPairProd",
-    "photonNuclear", "electronNuclear", "positronNuclear", "muonNuclear", "Decay", "hadElastic",
-    "neutronInelastic", "nCapture", "nFission", "protonInelastic", 
-    "pi+Inelastic", "pi-Inelastic", "kaon+Inelastic", "kaon-Inelastic", "kaon0LInelastic", "kaon0SInelastic",
-    "lambdaInelastic", "anti-lambdaInelastic", "sigma-Inelastic", "anti_sigma-Inelastic", "sigma+Inelastic",
-    "anti_sigma+Inelastic", "xi-Inelastic", "anti_xi-Inelastic", "xi0Inelastic", "anti_xi0Inelastic",
-    "omega-Inelastic", "anti_omega-Inelastic", "anti_protonInelastic", "anti_neutronInelastic", "anti_deuteronInelastic",
-    "anti_tritonInelastic", "anti_He3Inelastic", "anti_alphaInelastic", "hFritiofCaptureAtRest", "hBertiniCaptureAtRest",
-    "muMinusCaptureAtRest", "dInelastic", "tInelastic", "He3Inelastic", "alphaInelastic", "ionInelastic ",
-  };
+  NomeStrati = Geometry::NomeStrati;
+  posProcess = FTFP_BERT::processes;
   fOutput = TFile::Open(temp.c_str(), "RECREATE");
-  fTree = new TTree("Event","Event") ;
 
   hPrimaryEne = new TH1D("Primary Energy", "Primary Energy", 100, -10, +4);
   for (int i = 0; i < 4; i++) {
     hEleGap   [i] = new TH1D(Form("EleGap %i", i), "EleGap", 100, -10, +4);
     hPosGap   [i] = new TH1D(Form("PosGap %i", i), "PosGap", 100, -10, +4);
     hChargeGap[i] = new TH1D(Form("ChargeGap %i", i), "ChargeGap", 100, -10, +4);
-    hEleEne   [i] = new TH1D(Form("EleEne %i", i),"EleEne",100, -10, +4);
-    hPosEne   [i] = new TH1D(Form("PosEne %i", i),"PosEne",100, -10, +4);
-    hChargeEne[i] = new TH1D(Form("ChargeEne %i", i),"ChargeEne",100, -10, +4);
+    hEleEne   [i] = new TH2D(Form("EleEne %i", i),"EleEne",100, -10, +4, 100, -10, +4);
     BinLogX(hEleGap[i]);
     BinLogX(hPosGap[i]);
     BinLogX(hChargeGap[i]);
     BinLogX(hEleEne[i]);
-    BinLogX(hPosEne[i]);
-    BinLogX(hChargeEne[i]);
+    BinLogY(hEleEne[i]);
   }
 
   BinLogX(hPrimaryEne);
@@ -137,7 +110,7 @@ GeantAnalysis::GeantAnalysis(string temp)
 
 GeantAnalysis::~GeantAnalysis()
 {
-  fOutput->Write("",TObject::kOverwrite);
+  fOutput->Write();
   fOutput->Close();
   return;
 }
@@ -222,6 +195,24 @@ void GeantAnalysis::BinLogX(TH1* h)
 void GeantAnalysis::BinLogX(TH2* h)
 {
   TAxis* axis = h->GetXaxis();
+  Int_t bins = axis->GetNbins();
+
+  Double_t from = axis->GetXmin();
+  Double_t to = axis->GetXmax();
+  Double_t width = (to-from) / bins;
+  Double_t* new_bins = new Double_t[bins + 1];
+
+  for (Int_t i = 0; i <= bins; i++)
+  {
+    new_bins[i] = TMath::Power(10, from + i * width);
+  }
+  axis->Set(bins, new_bins);
+  delete new_bins;
+}
+
+void GeantAnalysis::BinLogY(TH2* h)
+{
+  TAxis* axis = h->GetYaxis();
   Int_t bins = axis->GetNbins();
 
   Double_t from = axis->GetXmin();
