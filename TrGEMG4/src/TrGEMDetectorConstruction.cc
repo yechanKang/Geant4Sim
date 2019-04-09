@@ -14,6 +14,7 @@
 //#include "G4LogicalVolumeStore.hh"
 //#include "G4SolidStore.hh"
 #include "G4VisAttributes.hh"
+#include "G4PVReplica.hh"
 #include "G4PVPlacement.hh"
 #include "G4UnitsTable.hh"
 #include "G4EqMagElectricField.hh"
@@ -72,15 +73,12 @@ void TrGEMDetectorConstruction::DefineMaterials() {
   G4Element* elH  = manager->FindOrBuildElement(1);
 
   // define Materials
-  G4Material *H  = G4NistManager::Instance()->FindOrBuildMaterial("G4_H") ;
-  G4Material *C  = G4NistManager::Instance()->FindOrBuildMaterial("G4_C") ;
-  G4Material *O  = G4NistManager::Instance()->FindOrBuildMaterial("G4_O") ;
-  G4Material *Si = G4NistManager::Instance()->FindOrBuildMaterial("G4_Si") ;
   G4Material *Cu = G4NistManager::Instance()->FindOrBuildMaterial("G4_Cu") ;
   G4Material *KAPTON = G4NistManager::Instance()->FindOrBuildMaterial("G4_KAPTON");
+  G4Material* Al = manager->FindOrBuildMaterial("G4_Al");
   fCuMat = Cu;
   fKAPTONMat = KAPTON;
-  
+  fProtect = Al;
   
   G4int numel(0), natoms(0) ;
   G4double density(0.), temperature(0.), pressure(0.), fractionMass(0.)  ;
@@ -118,9 +116,6 @@ void TrGEMDetectorConstruction::DefineMaterials() {
   fEmptyMat = empty ;
 
   // CF4 must be defined by hand
-  //G4int numel(0) ;
-  //G4double density(0.), temperature(0.), pressure(0.) ;
-  //G4String name, symbol ;
   G4Material* CF4 = new G4Material(name="CF4", density=0.003884*g/cm3, numel=2, kStateGas, temperature = 273.15*kelvin, pressure=1.0*atmosphere);
   CF4->AddElement(elC, 1) ;
   CF4->AddElement(elF, 4) ; 
@@ -178,25 +173,14 @@ G4VPhysicalVolume* TrGEMDetectorConstruction::Construct() {
   // Cleanup old geometry
   G4GeometryManager::GetInstance()->OpenGeometry();
 
-  //G4GeometryManager::GetInstance()->OpenGeometry();
-  //G4PhysicalVolumeStore::GetInstance()->Clean();
-  //G4LogicalVolumeStore::GetInstance()->Clean();
-  //G4SolidStore::GetInstance()->Clean();
-
   // Define all materials and set global variables
   DefineMaterials() ;
 
   // SD Manager 
-  G4SDManager* sdman = G4SDManager::GetSDMpointer() ;
 
   G4double worldSizeX = 10*m;
   G4double worldSizeY = 10*m;
   G4double worldSizeZ = 10*m;
-
-  // Rotation Matrix for layers
-  G4RotationMatrix* rotationPlacement = new G4RotationMatrix() ;
-  rotationPlacement->rotateY(M_PI / 2.0) ;
-  rotationPlacement->rotateX(M_PI / 2.0) ;
 
   // Visual attributes
   G4VisAttributes *cathodeAttributes = new G4VisAttributes(G4Color::Grey()) ;
@@ -205,11 +189,8 @@ G4VPhysicalVolume* TrGEMDetectorConstruction::Construct() {
   g10Attributes->SetForceWireframe(true) ;
   G4VisAttributes *gasAttributes = new G4VisAttributes(G4Color::Red()) ;
   gasAttributes->SetForceWireframe(true) ;
-  G4VisAttributes *gemAttributes = new G4VisAttributes(G4Color::Green()) ;
-  gemAttributes->SetForceWireframe(true) ;
   G4VisAttributes *insAttributes = new G4VisAttributes(G4Color::Blue()) ;
   insAttributes->SetForceWireframe(true) ;
-
 
   // World definition and placement
   G4Box* worldBox = new G4Box("WorldBox", worldSizeX, worldSizeY, worldSizeZ) ;
@@ -220,72 +201,12 @@ G4VPhysicalVolume* TrGEMDetectorConstruction::Construct() {
   worldLog->SetVisAttributes(worldAttributes) ;
 
   G4VPhysicalVolume* worldPhys = new G4PVPlacement(0, G4ThreeVector(), worldLog, "WorldSpace", 0, false, 0) ;
-   
 
-// 
-// //____________________________________________________________________________________________________________
-	       
-  std::vector<std::string> NomeStrati = Geometry::NomeStrati;
-  std::vector<std::string> NomeStratiLog;
-		
-  for(auto nome : NomeStrati) { 
-    NomeStratiLog.push_back(nome+"Log");
-  }
-		
-  std::vector<G4Material*> MatStrati=
-  {
-    fAirMat,                    //Fake
-    fCuMat,fFR4Mat,fCuMat,      //Drift Board
-    fGasMat,                    //Drift Gap
-    fCuMat,fKAPTONMat,fCuMat,   //gem1
-    fGasMat,                    //Transfer I Gap
-    fCuMat,fKAPTONMat,fCuMat,   //gem2
-    fGasMat,                    //Transfer II Gap
-    fCuMat,fKAPTONMat,fCuMat,   //gem3
-    fGasMat,                    //Induction Gap
-    fCuMat,fFR4Mat,fCuMat,      //Readout Board
-    fAirMat                     //Fake
-  };
+  makeLayers();
+  makeChamber();
+  makeSuperChamber();
 
-
-  std::vector<G4double> spessoreStrati = 
-  {
-    0.1*mm,                    //Fake
-    35.*um,3.2*mm,35.*um,      //Drift Board
-    3.*mm,                     //Drift Gap
-    5.*um,50*um,5.*um,         //gem1
-    2.*mm,                     //Transfer I Gap
-    5.*um,50*um,5.*um,         //gem2
-    2.*mm,                     //Transfer II Gap
-    5.*um,50.*um,5.*um,        //gem3
-    2.*mm,                     //Induction Gap
-    35.*um,3.2*mm,35.*um,      //Readout Board
-    0.1*mm                     //Fake
-  };
-
-  GasGapSensitiveDetector* sensitive = new GasGapSensitiveDetector("/GasGap") ;
-  sdman->AddNewDetector(sensitive) ;
-  
-  G4Trd* strato;
-  G4LogicalVolume* logicStrato;
-		
-  for(unsigned int lyr=0; lyr < NomeStrati.size(); lyr++)
-  {
-    strato=Trapezoid(NomeStrati[lyr], spessoreStrati[lyr]);
-    logicStrato = new G4LogicalVolume (strato, MatStrati[lyr],NomeStratiLog[lyr]);   
-    logicStrato->SetVisAttributes(new G4VisAttributes(*gemAttributes)) ;
-    trdCollection.push_back(strato) ;
-    trdLogCollection.push_back(logicStrato) ;
-    trdLogCollection[lyr]->SetSensitiveDetector(sensitive) ;		   
-  }
-  // G4bool allLocal = true;	
-  // trdLogCollection[4]->SetFieldManager(fFieldMgr,allLocal);
-  // trdLogCollection[8]->SetFieldManager(fFieldMgr,allLocal);
-  // trdLogCollection[12]->SetFieldManager(fFieldMgr,allLocal);
-  // trdLogCollection[16]->SetFieldManager(fFieldMgr,allLocal);
-
-
-  PlaceGeometry(rotationPlacement,G4ThreeVector(0.,0.,0.),worldLog) ;
+  PlaceGeometry(worldLog) ;
 
   return worldPhys ;
 
@@ -300,24 +221,150 @@ G4Trd* TrGEMDetectorConstruction::Trapezoid(G4String name, G4double width) {
   return shape ;
 }
 
-void TrGEMDetectorConstruction::PlaceGeometry(G4RotationMatrix *pRot, G4ThreeVector tlate, G4LogicalVolume* pMotherLogical) {
+void TrGEMDetectorConstruction::makeLayers() {
 
-  G4double XTranslation = 0 ;
+  G4VisAttributes *gemAttributes = new G4VisAttributes(G4Color::Green()) ;
+  gemAttributes->SetForceWireframe(true) ;
 
+  G4SDManager* sdman = G4SDManager::GetSDMpointer() ;
+
+  std::vector<std::string> layerName = Geometry::layerName;
+  std::vector<std::string> layerNameLog;
+		
+  for(auto name : layerName) { 
+    layerNameLog.push_back(name);
+  }
+		
+  std::vector<G4Material*> layerMat=
+  {
+    fAirMat,                    //Fake
+    fCuMat,fFR4Mat,fCuMat,      //Drift Board
+    fGasMat,                    //Drift Gap
+    fCuMat,fKAPTONMat,fCuMat,   //gem1
+    fGasMat,                    //Transfer I Gap
+    fCuMat,fKAPTONMat,fCuMat,   //gem2
+    fGasMat,                    //Transfer II Gap
+    fCuMat,fKAPTONMat,fCuMat,   //gem3
+    fGasMat,                    //Induction Gap
+    fCuMat,fFR4Mat,fCuMat,      //Readout Board
+    fCuMat,fFR4Mat,             //GEB Board
+    fCuMat,                     //Cooling Pad
+    fProtect,                   //Protective cover
+    fAirMat                     //Fake
+  };
+
+
+  std::vector<G4double> layerThickness = 
+  {
+    0.05*mm,                    //Fake
+    35.*um,3.2*mm,35.*um,       //Drift Board
+    3.*mm,                      //Drift Gap
+    5.*um,50*um,5.*um,          //gem1
+    1.*mm,                      //Transfer I Gap
+    5.*um,50*um,5.*um,          //gem2
+    2.*mm,                      //Transfer II Gap
+    5.*um,50.*um,5.*um,         //gem3
+    1.*mm,                      //Induction Gap
+    35.*um,3.2*mm,35.*um,       //Readout Board
+    140.*um, 856.*um,           //GEB Board
+    1.*mm,                      //Cooling Pad
+    1.*mm,                      //Protective cover
+    0.05*mm                     //Fake
+  };
+
+  GasGapSensitiveDetector* sensitive = new GasGapSensitiveDetector("/GasGap") ;
+  sdman->AddNewDetector(sensitive) ;
+  
+  G4Trd* layer;
+  G4LogicalVolume* logicLayer;
+		
+  for(unsigned int lyr=0; lyr < layerName.size(); lyr++)
+  {
+    layer=Trapezoid(layerName[lyr], layerThickness[lyr]);
+    logicLayer = new G4LogicalVolume (layer, layerMat[lyr],layerNameLog[lyr]);   
+    logicLayer->SetVisAttributes(new G4VisAttributes(*gemAttributes)) ;
+    trdCollection.push_back(layer) ;
+    trdLogCollection.push_back(logicLayer) ;
+  }
+  trdLogCollection[4] ->SetSensitiveDetector(sensitive) ;
+  trdLogCollection[8] ->SetSensitiveDetector(sensitive) ;
+  trdLogCollection[12]->SetSensitiveDetector(sensitive) ;
+  trdLogCollection[16]->SetSensitiveDetector(sensitive) ;
+
+  // G4bool allLocal = true;	
+  // trdLogCollection[4]->SetFieldManager(fFieldMgr,allLocal);
+  // trdLogCollection[8]->SetFieldManager(fFieldMgr,allLocal);
+  // trdLogCollection[12]->SetFieldManager(fFieldMgr,allLocal);
+  // trdLogCollection[16]->SetFieldManager(fFieldMgr,allLocal);
+}
+
+void TrGEMDetectorConstruction::makeChamber() {
+
+  G4double chamberThickness = 0.;
+  for (auto trd : trdCollection) {
+    chamberThickness += trd->GetXHalfLength1() * 2;
+  }
+
+  G4Trd* chamber = Trapezoid("chamber", chamberThickness);
+  G4LogicalVolume* logicChamber = new G4LogicalVolume (chamber, fEmptyMat, "chamber");
+
+  G4double XTranslation = (-1) * chamberThickness / 2. ;
   for(size_t i=0 ; i<trdCollection.size() ; i++) 
   {
-    // i counts as the copyNo
     XTranslation += trdCollection.at(i)->GetXHalfLength1() ;
-    G4ThreeVector position = tlate + G4ThreeVector(XTranslation,0,0).transform(G4RotationMatrix(*pRot).inverse()) ;
-    G4cout << "Volume (" << i << ") " << trdCollection.at(i)->GetName() << " the position is " << G4BestUnit(XTranslation,"Length") << G4endl ;
-    new G4PVPlacement(pRot,
+    G4ThreeVector position = G4ThreeVector(XTranslation,0,0) ;
+    new G4PVPlacement(0,
                       position,
                       trdLogCollection.at(i),
                       trdCollection.at(i)->GetName(),
-                      pMotherLogical,
+                      logicChamber,
                       false,
-                      i) ;
+                      0) ;
     XTranslation += trdCollection.at(i)->GetXHalfLength1() ;
   }
+
+  pLogChamber = logicChamber;
+
+  G4cout << "chamber has made" << G4endl;
+
+}
+
+void TrGEMDetectorConstruction::makeSuperChamber() {
+
+  G4double chamberThickness = 0.;
+  for (auto trd : trdCollection) {
+    chamberThickness += trd->GetXHalfLength1() * 2;
+  }
+  
+  G4double thickness = chamberThickness * 2;
+
+  G4Trd* superChamber = Trapezoid("superChamber", thickness);
+  G4LogicalVolume* logicSuperChamber = new G4LogicalVolume (superChamber, fEmptyMat, "superChamber");
+
+  new G4PVReplica("chamber", pLogChamber, logicSuperChamber, kXAxis, 2, chamberThickness);
+
+  pLogSuperChamber = logicSuperChamber;
+
+  G4cout << "super chamber has made" << G4endl;
+}
+
+void TrGEMDetectorConstruction::PlaceGeometry(G4LogicalVolume* pMotherLogical) {
+  // Rotation Matrix for layers
+  G4RotationMatrix* pRot = new G4RotationMatrix() ;
+  pRot->rotateY(M_PI / 2.0) ;
+  pRot->rotateX(M_PI / 2.0) ;
+  G4ThreeVector tlate(0.,0.,0.);
+
+  G4double XTranslation = 0 ;
+
+  G4ThreeVector position = tlate + G4ThreeVector(XTranslation,0,0).transform(G4RotationMatrix(*pRot).inverse()) ;
+  
+  new G4PVPlacement(pRot,
+                    position,
+                    pLogChamber,
+                    "chamber",
+                    pMotherLogical,
+                    false,
+                    0) ;
 }
 

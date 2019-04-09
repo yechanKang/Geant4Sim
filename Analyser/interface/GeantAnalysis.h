@@ -61,7 +61,7 @@ private:
   double positionX, positionY, positionZ;
   double momentumX, momentumY, momentumZ;
 
-  vector<string> NomeStrati;
+  vector<string> layerName;
   vector<string> posProcess;
 
 public:
@@ -82,7 +82,7 @@ public:
 #ifdef GeantAnalysis_cxx
 GeantAnalysis::GeantAnalysis(string temp)
 {
-  NomeStrati = Geometry::NomeStrati;
+  layerName = Geometry::layerName;
   posProcess = FTFP_BERT::processes;
   fOutput = TFile::Open(temp.c_str(), "RECREATE");
 
