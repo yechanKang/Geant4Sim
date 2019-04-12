@@ -33,12 +33,14 @@ class TrGEMAnalysis {
                       G4int gapPart, 
                       G4int aCharge,
                       G4String volume,
+                      G4int    copyNo,
                       G4double kinene,
                       TVector3 position,
                       TVector3 momentum);
     void SaveGenTrack(G4int partCode,
                       std::string process,
                       std::string volume,
+                      G4int copyNo,
                       G4int trackID,
                       G4int parentID);
 
@@ -61,7 +63,7 @@ class TrGEMAnalysis {
     G4int eventCounter ;
     G4String fileName;
 
-    std::map<G4int, std::array<G4int, 4>> genMap;
+    std::map<G4int, std::array<G4int, 5>> genMap;
     
     // std::vector<G4int>  gammaContainer;        s
 
@@ -85,6 +87,7 @@ class TrGEMAnalysis {
     std::vector<G4int> partId;
     std::vector<G4int> processNum;
     std::vector<G4int> processVol;
+    std::vector<G4int> volCopyNo;
 
     // GARFIELD quantities
     G4double  kineticEnergy ;

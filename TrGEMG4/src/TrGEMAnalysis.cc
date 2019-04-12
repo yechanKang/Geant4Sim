@@ -94,6 +94,7 @@ void TrGEMAnalysis::PrepareNewRun(const G4Run* /*aRun*/)
   tElectron->Branch("gap",        &gap, "gap/I");
   tElectron->Branch("partId",     &partId);
   tElectron->Branch("processVol", &processVol);
+  tElectron->Branch("volCopyNo",  &volCopyNo);
   tElectron->Branch("processNum", &processNum);
   tElectron->Branch("kineticEnergy", &kineticEnergy);
   tElectron->Branch("positionX", &positionX, "positionX/D");
@@ -107,6 +108,7 @@ void TrGEMAnalysis::PrepareNewRun(const G4Run* /*aRun*/)
   tPositron->Branch("gap",        &gap, "gap/I");
   tPositron->Branch("partId",   &partId);
   tPositron->Branch("processVol", &processVol);
+  tPositron->Branch("volCopyNo",  &volCopyNo);
   tPositron->Branch("processNum", &processNum);
   tPositron->Branch("kineticEnergy", &kineticEnergy);
   tPositron->Branch("positionX", &positionX, "positionX/D");
@@ -120,6 +122,7 @@ void TrGEMAnalysis::PrepareNewRun(const G4Run* /*aRun*/)
   tGamma->Branch("gap",        &gap, "gap/I");
   tGamma->Branch("partId",   &partId);
   tGamma->Branch("processVol", &processVol);
+  tGamma->Branch("volCopyNo",  &volCopyNo);
   tGamma->Branch("processNum", &processNum);
   tGamma->Branch("kineticEnergy", &kineticEnergy);
   tGamma->Branch("positionX", &positionX, "positionX/D");
@@ -130,8 +133,10 @@ void TrGEMAnalysis::PrepareNewRun(const G4Run* /*aRun*/)
   tGamma->Branch("momentumZ", &momentumZ, "momentumZ/D");
   
   tCharged = new TTree("Charged", "other charged particle info");
+  tCharged->Branch("gap",      &gap, "gap/I");
   tCharged->Branch("partId",   &partId);
   tCharged->Branch("processVol", &processVol);
+  tCharged->Branch("volCopyNo",  &volCopyNo);
   tCharged->Branch("processNum", &processNum);
 }
 
@@ -187,13 +192,13 @@ void TrGEMAnalysis::SaveGapTrack(
   G4int gapPart, 
   G4int gapCharge,
   G4String volume,
+  G4int    copyNo,
   G4double kinene, 
   TVector3 position, 
   TVector3 momentum ) 
 {
   if (trackId == 1) return;
   G4int volNum = FindVolume(volume);
-  G4int currentNum = genMap[trackId][3];
   gap = volNum / 4 - 1;
   kineticEnergy = kinene;
   positionX = position.x();
@@ -230,6 +235,7 @@ void TrGEMAnalysis::SaveGenTrack(
   G4int partCode, 
   std::string process, 
   std::string volume, 
+  G4int copyNo,
   G4int trackID, 
   G4int parentID)
 {
@@ -241,6 +247,7 @@ void TrGEMAnalysis::SaveGenTrack(
   genMap[id][1] = partCode;
   genMap[id][2] = processNum;
   genMap[id][3] = volNum;
+  genMap[id][4] = copyNo;
 }
 
 G4int TrGEMAnalysis::FindVolume(std::string volume)
@@ -279,10 +286,12 @@ void TrGEMAnalysis::PreSavingTrack(G4int trackID)
   partId.push_back(genMap[trackID][1]);
   processNum.push_back(genMap[trackID][2]);
   processVol.push_back(genMap[trackID][3]);
+  volCopyNo.push_back(genMap[trackID][4]);
   while(id != 1) {
     partId.push_back(genMap[id][1]);
     processNum.push_back(genMap[id][2]);
     processVol.push_back(genMap[id][3]);
+    volCopyNo.push_back(genMap[id][4]);
     id = genMap[id][0];
   }
 }
@@ -292,6 +301,7 @@ void TrGEMAnalysis::PostSavingTrack()
   partId.clear();
   processNum.clear();
   processVol.clear();
+  volCopyNo.clear();
 
   kineticEnergy = 0;
   positionX = 0;

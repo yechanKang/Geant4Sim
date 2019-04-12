@@ -11,6 +11,7 @@ void GeantAnalysis::Analysis()
   int iElectron = 0;
   int iPositron = 0;
   int iGamma    = 0;
+  int iCharged  = 0;
   for(Long64_t i = 0; i < nEntries; i++)
   {
     tEvent->GetEntry(i);
@@ -19,7 +20,7 @@ void GeantAnalysis::Analysis()
     for(int iEl = 0; iEl < nElectron; iEl++)
     {
       tElectron->GetEntry(iElectron);
-      if (gap == 1 or gap == 0) 
+      if (gap == 0 or gap == 1) 
       {
         hEleGap[0]->Fill(primaryEne);
         bool test = false;
@@ -27,17 +28,34 @@ void GeantAnalysis::Analysis()
         {
           test = (partId->at(ie) == 11)|test;
         }
-        if (!test) hEleEne[0]->Fill(primaryEne,kineticEnergy);
+        if (!test) 
+        {
+          hEleEne[0]->Fill(primaryEne,kineticEnergy);
+          hElectronGenProcess->Fill(primaryEne,processNum->at(0));
+          hPrimaryProcess->Fill(primaryEne,
+                                processNum->at(partId->size()-1));
+        }
       }
       iElectron++;
     }
-
-    //for(int i = 0; i < nPositron; i++)
-    //{
-    //  tPositron->GetEntry(i);
-    //  hPosGap[gap]->Fill(primaryEne);
-    //  iPositron++;
-    //}
+    for(int iEl = 0; iEl < nPositron; iEl++)
+    {
+      tPositron->GetEntry(iPositron);
+      if (gapPos == 0 or gapPos == 1) 
+      {
+        hEleGap[0]->Fill(primaryEne);
+      }
+      iPositron++;
+    }
+    for(int iEl = 0; iEl < nCharged; iEl++)
+    {
+      tCharged->GetEntry(iCharged);
+      if (gapCharge == 0 or gapCharge == 1) 
+      {
+        hEleGap[0]->Fill(primaryEne);
+      }
+      iCharged++;
+    }
   }
 }
 
@@ -50,11 +68,12 @@ int main(Int_t argc, Char_t** argv)
   else
   {
     string temp = argv[1];
-    auto analysis = new GeantAnalysis(temp);
+    auto analysis = new GeantAnalysis(temp, true);
     
     for(Int_t i = 2; i < argc; i++)
     { 
       temp = argv[i];
+      cout << temp << " has opend" << endl;
       analysis->SetFile(temp);
       analysis->Analysis();
     }

@@ -6,6 +6,7 @@
 
 #include "G4UImanager.hh"
 #include "FTFP_BERT_HP.hh"
+#include "QGSP_BERT.hh"
 // #include "TROOT.h"
 #include "G4EmLivermorePhysics.hh"
 #include "G4VModularPhysicsList.hh"
@@ -30,7 +31,8 @@ int main(int argc, char** argv) {
   G4RunManager* runManager = new G4RunManager;
 
   runManager->SetUserInitialization(new TrGEMDetectorConstruction ) ;
-  G4VUserPhysicsList* physics = new FTFP_BERT_HP();
+  //G4VUserPhysicsList* physics = new FTFP_BERT_HP();
+  G4VUserPhysicsList* physics = new QGSP_BERT();
 
   runManager->SetUserInitialization(physics);
 
@@ -43,7 +45,7 @@ int main(int argc, char** argv) {
   G4UImanager* UImanager = G4UImanager::GetUIpointer();
 
   G4String temp = argv[2];
-  UImanager->ApplyCommand("/run/setCut 1 nm");
+  //UImanager->ApplyCommand("/run/setCut 1 nm");
   TrGEMAnalysis::GetInstance()->SetFileName(temp);
   G4String command = "/run/beamOn ";
   temp = argv[3];

@@ -204,7 +204,7 @@ G4VPhysicalVolume* TrGEMDetectorConstruction::Construct() {
 
   makeLayers();
   makeChamber();
-  makeSuperChamber();
+  //makeSuperChamber();
 
   PlaceGeometry(worldLog) ;
 
@@ -247,16 +247,16 @@ void TrGEMDetectorConstruction::makeLayers() {
     fCuMat,fKAPTONMat,fCuMat,   //gem3
     fGasMat,                    //Induction Gap
     fCuMat,fFR4Mat,fCuMat,      //Readout Board
-    fCuMat,fFR4Mat,             //GEB Board
-    fCuMat,                     //Cooling Pad
-    fProtect,                   //Protective cover
+  //  fCuMat,fFR4Mat,             //GEB Board
+  //  fCuMat,                     //Cooling Pad
+  //  fProtect,                   //Protective cover
     fAirMat                     //Fake
   };
 
 
   std::vector<G4double> layerThickness = 
   {
-    0.05*mm,                    //Fake
+    0.1*mm,                    //Fake
     35.*um,3.2*mm,35.*um,       //Drift Board
     3.*mm,                      //Drift Gap
     5.*um,50*um,5.*um,          //gem1
@@ -266,10 +266,10 @@ void TrGEMDetectorConstruction::makeLayers() {
     5.*um,50.*um,5.*um,         //gem3
     1.*mm,                      //Induction Gap
     35.*um,3.2*mm,35.*um,       //Readout Board
-    140.*um, 856.*um,           //GEB Board
-    1.*mm,                      //Cooling Pad
-    1.*mm,                      //Protective cover
-    0.05*mm                     //Fake
+  //  140.*um, 856.*um,           //GEB Board
+  //  1.*mm,                      //Cooling Pad
+  //  1.*mm,                      //Protective cover
+    0.1*mm                     //Fake
   };
 
   GasGapSensitiveDetector* sensitive = new GasGapSensitiveDetector("/GasGap") ;

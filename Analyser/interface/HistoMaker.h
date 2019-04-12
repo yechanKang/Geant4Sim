@@ -36,9 +36,8 @@ public:
   TH1D* SensitivityCharge(Int_t gap);
   TH2D* ElectronEnergyDist(Int_t gap);
   TH1D* ChargeEnergyDist(Int_t gap);
-  
-  TH2D* NeutronProcess(Int_t nXbins);
-  TH2D* ElectronProcess(Int_t nXbins);
+
+  TH2D* MakeSelectedBin2D(std::string name);
 };
 
 HistoMaker::HistoMaker(std::string fileName)
@@ -196,94 +195,38 @@ TH1D* HistoMaker::SensitivityCharge(Int_t gap)
   return sensitivityPlot;
 }
 
-TH2D* HistoMaker::NeutronProcess(Int_t nXbins)
+TH2D* HistoMaker::MakeSelectedBin2D(std::string name)
 {
-  TH2D* neutronProcess = GetHisto2D("NeutronProcess");
-  std::vector<Int_t> nProcess;
-  TAxis* axis = neutronProcess->GetXaxis();
-  Double_t from = axis->GetXmin();
-  Double_t to = axis->GetXmax();
-  Int_t fromBin = axis->FindBin(from);
-  Int_t toBin = axis->FindBin(to);
-  TAxis* axisY = neutronProcess->GetYaxis();
-  for(Int_t i = 0; i < posProcess.size(); i++)
+  TH2D* h = GetHisto2D(name);
+  auto axisX = h->GetXaxis();
+  auto from  = axisX->GetXmin();
+  auto to    = axisX->GetXmax();
+  auto nBins = axisX->GetNbins();
+  auto fromBin = axisX->FindBin(from);
+  auto toBin   = axisX->FindBin(to);
+  auto axisY = h->GetYaxis();
+  auto fromBinY = axisY->FindBin(axisY->GetXmin());
+  auto toBinY   = axisY->FindBin(axisY->GetXmax());
+  std::vector<int> remaind;
+  for (int i = 0; i < posProcess.size(); i++)
   {
-    Int_t theBin = axisY->FindBin(i);
-    if(neutronProcess->Integral(fromBin, toBin, theBin, theBin) > 0.5)
-    {
-      nProcess.push_back(i);
-    }
+    auto bin = axisY->FindBin(i);
+    if (h->Integral(fromBin, toBin, bin, bin) != 0) remaind.push_back(i);
   }
-  TH2D* processPlot = new TH2D("Neutron Process", "Neutron's Processes", nXbins, -10, 4, nProcess.size(), 0, nProcess.size());
+  auto processPlot = new TH2D(name.c_str(), name.c_str(), nBins, -9, 3, remaind.size(), 0, remaind.size());
   BinLogX(processPlot);
-  for(Int_t j = 0; j < nProcess.size(); j++)
+  for (int i = 0; i < remaind.size(); i++) 
   {
-    processPlot->GetYaxis()->SetBinLabel(j+1,posProcess[nProcess[j]].c_str());
-  }
-
-  for(Int_t i = 0; i < nXbins; i++)
-  {
-    Double_t totEntry = neutronProcess->Integral(i, i, 0, posProcess.size());
-    Double_t energy = axis->GetBinCenter(i);
-    for(Int_t j = 0; j < posProcess.size(); j++)
+    auto theBin = axisY->FindBin(remaind.at(i));
+    auto newBin = processPlot->GetYaxis()->FindBin(i);
+    processPlot->GetYaxis()->SetBinLabel(newBin, posProcess.at(remaind.at(i)).c_str());
+    for (int bin = fromBin; bin != toBin; bin++) 
     {
-      Int_t BinY = axisY->FindBin(j);
-      Double_t entry = neutronProcess->GetBinContent(i,BinY);
-      if(entry < 0.5) continue;
-      for(Int_t k = 0; k < nProcess.size(); k++)
-      {
-        if(j == nProcess[k])
-        {
-          processPlot->Fill(energy, k, entry*100/totEntry);
-          break;
-        }
-      }
-    }
-  }
-  return processPlot;
-}
-
-TH2D* HistoMaker::ElectronProcess(Int_t nXbins)
-{
-  TH2D* neutronProcess = GetHisto2D("ElectronGenProcess");
-  std::vector<Int_t> nProcess;
-  TAxis* axis = neutronProcess->GetXaxis();
-  Double_t from = axis->GetXmin();
-  Double_t to = axis->GetXmax();
-  Int_t fromBin = axis->FindBin(from);
-  Int_t toBin = axis->FindBin(to);
-  TAxis* axisY = neutronProcess->GetYaxis();
-  for(Int_t i = 0; i < posProcess.size(); i++)
-  {
-    Int_t theBin = axisY->FindBin(i);
-    if(neutronProcess->Integral(fromBin, toBin, theBin, theBin) > 0.5)
-    {
-      nProcess.push_back(i);
-    }
-  }
-  TH2D* processPlot = new TH2D("Electron Process", "Generating Processes of Electrons", nXbins, -10, 4, nProcess.size(), 0, nProcess.size());
-  BinLogX(processPlot);
-  for(Int_t j = 0; j < nProcess.size(); j++)
-  {
-    processPlot->GetYaxis()->SetBinLabel(j+1,posProcess[nProcess[j]].c_str());
-  }
-
-  for(Int_t i = 0; i < nXbins; i++)
-  {
-    Double_t totEntry = neutronProcess->Integral(i, i, 0, posProcess.size());
-    Double_t energy = axis->GetBinCenter(i);
-    for(Int_t j = 0; j < posProcess.size(); j++)
-    {
-      Int_t BinY = axisY->FindBin(j);
-      Double_t entry = neutronProcess->GetBinContent(i,BinY);
-      if(entry < 0.5) continue;
-      for(Int_t k = 0; k < nProcess.size(); k++)
-      {
-        if(j == nProcess[k])
-        {
-          processPlot->Fill(energy, k, entry*100/totEntry);
-          break;
-        }
+      auto tot = h->Integral(bin, bin, fromBinY, toBinY);
+      if (tot == 0) processPlot->SetBinContent(bin, newBin, 0.);
+      else {
+        auto val = h->GetBinContent(bin, theBin);
+        processPlot->SetBinContent(bin, newBin, val/tot);
       }
     }
   }

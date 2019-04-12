@@ -5,7 +5,7 @@ using namespace std;
 
 int HistoDrawer()
 {
-  HistoMaker histDrawer("gamma_test.root");
+  HistoMaker histDrawer("gamma.root");
   auto c1 = new TCanvas("c1","c1",600,500);
   //TH1D* h = histDrawer.PrimaryEnergy();
   auto legend = new TLegend(0.1,0.8,0.48,0.9);
@@ -15,6 +15,9 @@ int HistoDrawer()
     h->Draw("L1 hist same");
     //h->Draw("colz");
   }
+  //auto h = histDrawer.MakeSelectedBin2D("PrimaryProcess");
+  //h->GetXaxis()->SetRangeUser(1E-2, 1E+3);
+  //h->Draw("colz");
 
   //TH2D* h = histDrawer.ElectronProcess(100);
   //TH2D* h = histDrawer.NeutronProcess(100);

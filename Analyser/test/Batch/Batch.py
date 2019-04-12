@@ -7,7 +7,7 @@ from math import ceil
 application = 'GeantAnalysis'
 jobName = sys.argv[1]
 
-fileList = 'gamma_dataset.txt'
+fileList = '%s_dataset.txt'%(jobName)
 
 cmsswBase = os.environ['CMSSW_BASE']
 username = "yekang"

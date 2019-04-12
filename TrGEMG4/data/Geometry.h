@@ -14,9 +14,9 @@ namespace Geometry {
     "Gem3Copper1","Gem3","Gem3Copper2",             //gem3
     "GasGap4",                                      //Induction Gap
     "ReadCopper1","ReadoutBoard","ReadCopper2",     //Readout Board
-    "GEBCoppor", "GEB",                             //GEB Board
-    "CoolingPads",                                  //CollingPads
-    "Cover",                                        //Cover
+    //"GEBCoppor", "GEB",                             //GEB Board
+    //"CoolingPads",                                  //CollingPads
+    //"Cover",                                        //Cover
     "FakeTop"                                       //Fake
   };
 }

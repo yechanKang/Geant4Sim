@@ -112,30 +112,21 @@ G4bool GasGapSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory *)
     contaInteraction=1;
   } 
 
-  if( trackIndex==1 && (volName == "FakeBottom" || volName == "FakeTop")&& contaPrimary==0) {  
-    //  if( trackIndex==1 ) {  
-    primaryene=energy;
-    contaPrimary=1;
-  }
-  //TrGEMAnalysis::GetInstance()->SetEnergyDeposition(volName, edep, edepI, t);
+  // we're in one of the gaps
 
-  if(volName == "GasGap1" || volName == "GasGap2" || volName == "GasGap3" || volName == "GasGap4") {
-    // we're in one of the gaps
-
-    for(unsigned int T=0;T< ttTrack.size();T++){
-      if (ttTrack[T]==trackIndex){
-        contaSec=9999;
-        break;
-      }
+  for(unsigned int T=0;T< ttTrack.size();T++){
+    if (ttTrack[T]==trackIndex){
+      contaSec=9999;
+      break;
     }
-
-    if(contaSec!=9999)  {
-      TrGEMAnalysis::GetInstance()->SaveGapTrack(trackIndex, pdg, charge, volName, energy ,position, momentum);
-      contaSec=trackIndex;
-      ttTrack.push_back(trackIndex);
-    }  
-      
   }
+
+  if(contaSec!=9999)  {
+    TrGEMAnalysis::GetInstance()->SaveGapTrack(trackIndex, pdg, charge, volName, copyNo, energy ,position, momentum);
+    contaSec=trackIndex;
+    ttTrack.push_back(trackIndex);
+  }  
+    
 
   //check if edep is from primary or secondary:
   G4String isPri = step->GetTrack()->GetTrackID() == 1 ? "Yes" : "No";
