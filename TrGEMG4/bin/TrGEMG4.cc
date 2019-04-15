@@ -31,8 +31,8 @@ int main(int argc, char** argv) {
   G4RunManager* runManager = new G4RunManager;
 
   runManager->SetUserInitialization(new TrGEMDetectorConstruction ) ;
-  //G4VUserPhysicsList* physics = new FTFP_BERT_HP();
-  G4VUserPhysicsList* physics = new QGSP_BERT();
+  G4VUserPhysicsList* physics = new FTFP_BERT_HP();
+  //G4VUserPhysicsList* physics = new QGSP_BERT();
 
   runManager->SetUserInitialization(physics);
 
@@ -49,6 +49,7 @@ int main(int argc, char** argv) {
   TrGEMAnalysis::GetInstance()->SetFileName(temp);
   G4String command = "/run/beamOn ";
   temp = argv[3];
+  UImanager->ApplyCommand("/run/initialize");
   UImanager->ApplyCommand(command+temp);
 
   // job termination

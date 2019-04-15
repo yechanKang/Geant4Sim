@@ -184,13 +184,13 @@ void TrGEMAnalysis::EndOfRun(const G4Run* aRun)
 
 void TrGEMAnalysis::SavePrimary(G4int primaryPart_, G4double primaryEne_){
   primaryPart = primaryPart_;
-  primaryEne = primaryEne_;
+  primaryEne = primaryEne_ / MeV;
 }
 
 void TrGEMAnalysis::SaveGapTrack(
-  G4int trackId,
-  G4int gapPart, 
-  G4int gapCharge,
+  G4int    trackId,
+  G4int    gapPart, 
+  G4int    gapCharge,
   G4String volume,
   G4int    copyNo,
   G4double kinene, 
@@ -200,7 +200,7 @@ void TrGEMAnalysis::SaveGapTrack(
   if (trackId == 1) return;
   G4int volNum = FindVolume(volume);
   gap = volNum / 4 - 1;
-  kineticEnergy = kinene;
+  kineticEnergy = kinene / MeV;
   positionX = position.x();
   positionY = position.y();
   positionZ = position.z();

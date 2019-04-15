@@ -104,9 +104,6 @@ G4bool GasGapSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory *)
   }
   else  {genprocess="primary";}
 
-  const G4LogicalVolume *  genLogVolume=track->GetLogicalVolumeAtVertex();
-  G4String genvolume= genLogVolume->GetName();
-
   if ((*step->GetSecondary()).size()>0 && trackIndex==1 && contaInteraction == 0){
     zinteraction=z; 
     contaInteraction=1;

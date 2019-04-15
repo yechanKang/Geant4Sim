@@ -5,6 +5,7 @@ using namespace std;
 
 int HistoDrawer()
 {
+  //HistoMaker histDrawer("neutron.root");
   HistoMaker histDrawer("gamma.root");
   auto c1 = new TCanvas("c1","c1",600,500);
   //TH1D* h = histDrawer.PrimaryEnergy();

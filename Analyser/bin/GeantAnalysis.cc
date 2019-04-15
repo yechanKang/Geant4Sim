@@ -17,12 +17,14 @@ void GeantAnalysis::Analysis()
     tEvent->GetEntry(i);
     hPrimaryEne->Fill(primaryEne);
 
+    if (nElectron != 0) 
+      hEleGap[0]->Fill(primaryEne);
+
     for(int iEl = 0; iEl < nElectron; iEl++)
     {
       tElectron->GetEntry(iElectron);
-      if (gap == 0 or gap == 1) 
+      if (true) 
       {
-        hEleGap[0]->Fill(primaryEne);
         bool test = false;
         for (unsigned int ie = 1; ie < partId->size(); ie++)
         {
@@ -38,24 +40,24 @@ void GeantAnalysis::Analysis()
       }
       iElectron++;
     }
-    for(int iEl = 0; iEl < nPositron; iEl++)
-    {
-      tPositron->GetEntry(iPositron);
-      if (gapPos == 0 or gapPos == 1) 
-      {
-        hEleGap[0]->Fill(primaryEne);
-      }
-      iPositron++;
-    }
-    for(int iEl = 0; iEl < nCharged; iEl++)
-    {
-      tCharged->GetEntry(iCharged);
-      if (gapCharge == 0 or gapCharge == 1) 
-      {
-        hEleGap[0]->Fill(primaryEne);
-      }
-      iCharged++;
-    }
+    //for(int iEl = 0; iEl < nPositron; iEl++)
+    //{
+    //  tPositron->GetEntry(iPositron);
+    //  if (gapPos == 0 or gapPos == 1) 
+    //  {
+    //    hEleGap[0]->Fill(primaryEne);
+    //  }
+    //  iPositron++;
+    //}
+    //for(int iEl = 0; iEl < nCharged; iEl++)
+    //{
+    //  tCharged->GetEntry(iCharged);
+    //  if (gapCharge == 0 or gapCharge == 1) 
+    //  {
+    //    hEleGap[0]->Fill(primaryEne);
+    //  }
+    //  iCharged++;
+    //}
   }
 }
 
