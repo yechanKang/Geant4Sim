@@ -15,49 +15,39 @@ void GeantAnalysis::Analysis()
   for(Long64_t i = 0; i < nEntries; i++)
   {
     tEvent->GetEntry(i);
-    hPrimaryEne->Fill(primaryEne);
-
-    if (nElectron != 0) 
-      hEleGap[0]->Fill(primaryEne);
+    hPrimaryEne->Fill(primaryEne*1E+6);
+    cout << primaryEne*1E+6 << endl;
 
     for(int iEl = 0; iEl < nElectron; iEl++)
     {
       tElectron->GetEntry(iElectron);
-      if (true) 
+      hElect->Fill(primaryEne*1E+6);
+      bool test = false;
+      for (unsigned int ie = 1; ie < partId->size(); ie++)
       {
-        bool test = false;
-        for (unsigned int ie = 1; ie < partId->size(); ie++)
-        {
-          test = (partId->at(ie) == 11)|test;
-        }
-        if (!test) 
-        {
-          hEleEne[0]->Fill(primaryEne,kineticEnergy);
-          hElectronGenProcess->Fill(primaryEne,processNum->at(0));
-          hPrimaryProcess->Fill(primaryEne,
-                                processNum->at(partId->size()-1));
-        }
+        test = (partId->at(ie) == 11)|test;
+      }
+      if (!test) 
+      {
+        hElectronGenProcess->Fill(primaryEne*1E+6,
+                                  processNum->at(0));
+        hElectronPrimaryProcess->Fill(primaryEne*1E+6,
+                                      processNum->at(partId->size()-1));
+        hElectronSecondaryProcess->Fill(primaryEne*1E+6,
+                                        processNum->at(partId->size()-2));
       }
       iElectron++;
     }
-    //for(int iEl = 0; iEl < nPositron; iEl++)
-    //{
-    //  tPositron->GetEntry(iPositron);
-    //  if (gapPos == 0 or gapPos == 1) 
-    //  {
-    //    hEleGap[0]->Fill(primaryEne);
-    //  }
-    //  iPositron++;
-    //}
-    //for(int iEl = 0; iEl < nCharged; iEl++)
-    //{
-    //  tCharged->GetEntry(iCharged);
-    //  if (gapCharge == 0 or gapCharge == 1) 
-    //  {
-    //    hEleGap[0]->Fill(primaryEne);
-    //  }
-    //  iCharged++;
-    //}
+    for(int iG = 0; iG < nGamma; iG++)
+    {
+      tGamma->GetEntry(iGamma);
+      hGamma->Fill(primaryEne*1E+6);
+      hGammaGenProcess->Fill(primaryEne*1E+6,
+                             processNum->at(0));
+      hGammaPrimaryProcess->Fill(primaryEne*1E+6,
+                                 processNum->at(partId->size()-1));
+      iGamma++;
+    }
   }
 }
 

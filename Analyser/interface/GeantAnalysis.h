@@ -22,17 +22,15 @@ private:
   TFile* fOutput;
 
   TH1D* hPrimaryEne;
-  TH1D* hEleGap[4];
-  TH1D* hPosGap[4];
-  TH1D* hChargeGap[4];
 
-  TH2D* hEleEne[4];
+  TH1D* hElect;
+  TH1D* hGamma;
 
-  TH2D* hPrimaryProcess;
-  TH2D* hSecondaryProcess;
+  TH2D* hGammaPrimaryProcess;
+  TH2D* hGammaGenProcess;
+  TH2D* hElectronPrimaryProcess;
+  TH2D* hElectronSecondaryProcess;
   TH2D* hElectronGenProcess;
-  // TH2D* hGenerationLow;
-  // TH2D* hGenerationHigh;
 
 private:
   double primaryEne;
@@ -88,7 +86,7 @@ public:
 GeantAnalysis::GeantAnalysis(string temp, bool t)
 {
   if (t) {
-    lowBound = -9;
+    lowBound = -3;
     highBound = 3;
   } else {
     lowBound = -6;
@@ -99,26 +97,24 @@ GeantAnalysis::GeantAnalysis(string temp, bool t)
   fOutput = TFile::Open(temp.c_str(), "RECREATE");
 
   hPrimaryEne = new TH1D("Primary Energy", "Primary Energy", 100, lowBound, highBound);
-  for (int i = 0; i < 4; i++) {
-    hEleGap   [i] = new TH1D(Form("EleGap %i", i), "EleGap", 100, lowBound, highBound);
-    hPosGap   [i] = new TH1D(Form("PosGap %i", i), "PosGap", 100, lowBound, highBound);
-    hChargeGap[i] = new TH1D(Form("ChargeGap %i", i), "ChargeGap", 100, lowBound, highBound);
-    hEleEne   [i] = new TH2D(Form("EleEne %i", i),"EleEne",100, -10, +4, 100, lowBound, highBound);
-    BinLogX(hEleGap[i]);
-    BinLogX(hPosGap[i]);
-    BinLogX(hChargeGap[i]);
-    BinLogX(hEleEne[i]);
-    BinLogY(hEleEne[i]);
-  }
 
+  hElect = new TH1D("Electron", "Electron", 100, lowBound, highBound);
+  hGamma = new TH1D("Gamma", "Gamma", 100, lowBound, highBound);
   BinLogX(hPrimaryEne);
+  BinLogX(hElect);
+  BinLogX(hGamma);
 
-  hPrimaryProcess = new TH2D("PrimaryProcess","PrimaryProcess",100, lowBound, highBound, posProcess.size(), 0, posProcess.size());
-  hSecondaryProcess = new TH2D("SecondaryProcess","SecondaryProcess",100, lowBound, highBound, posProcess.size(), 0, posProcess.size());
+  hElectronPrimaryProcess = new TH2D("ElectronPrimaryProcess","ElectronPrimaryProcess",100, lowBound, highBound, posProcess.size(), 0, posProcess.size());
+  hElectronSecondaryProcess = new TH2D("ElectronSecondaryProcess","ElectronSecondaryProcess",100, lowBound, highBound, posProcess.size(), 0, posProcess.size());
   hElectronGenProcess = new TH2D("ElectronGenProcess","ElectronGenProcess",100, lowBound, highBound, posProcess.size(), 0, posProcess.size());
+  hGammaPrimaryProcess = new TH2D("GammaPrimaryProcess","GammaPrimaryProcess",100, lowBound, highBound, posProcess.size(), 0, posProcess.size());
+  hGammaGenProcess = new TH2D("GammaGenProcess","GammaGenProcess",100, lowBound, highBound, posProcess.size(), 0, posProcess.size());
 
-  BinLogX(hPrimaryProcess);
+  BinLogX(hElectronPrimaryProcess);
+  BinLogX(hElectronSecondaryProcess);
   BinLogX(hElectronGenProcess);
+  BinLogX(hGammaPrimaryProcess);
+  BinLogX(hGammaGenProcess);
 }
 
 GeantAnalysis::~GeantAnalysis()

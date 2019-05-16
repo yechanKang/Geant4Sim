@@ -62,7 +62,7 @@ TrGEMPrimaryGeneratorAction::TrGEMPrimaryGeneratorAction(char* partName_) : part
   if (temp == "neutron") eneRange = 12;
   else if (temp == "gamma") eneRange = 5;
   else if (temp == "e-") eneRange = 5;
-  else if (temp == "e+") eneRange = 5;
+  else if (temp == "e+") eneRange = 12;
   else if (temp == "alpha") eneRange = 12;
   else if (temp == "mu-") eneRange = 12;
   else throw;

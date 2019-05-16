@@ -50,6 +50,7 @@ int main(int argc, char** argv) {
   G4String command = "/run/beamOn ";
   temp = argv[3];
   UImanager->ApplyCommand("/run/initialize");
+  UImanager->ApplyCommand("/cuts/setLowEdge 10 eV");
   UImanager->ApplyCommand(command+temp);
 
   // job termination

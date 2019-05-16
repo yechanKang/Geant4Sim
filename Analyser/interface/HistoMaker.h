@@ -213,7 +213,7 @@ TH2D* HistoMaker::MakeSelectedBin2D(std::string name)
     auto bin = axisY->FindBin(i);
     if (h->Integral(fromBin, toBin, bin, bin) != 0) remaind.push_back(i);
   }
-  auto processPlot = new TH2D(name.c_str(), name.c_str(), nBins, -9, 3, remaind.size(), 0, remaind.size());
+  auto processPlot = new TH2D(name.c_str(), name.c_str(), nBins, -3, 3, remaind.size(), 0, remaind.size());
   BinLogX(processPlot);
   for (int i = 0; i < remaind.size(); i++) 
   {
