@@ -59,36 +59,15 @@ TrGEMPrimaryGeneratorAction::TrGEMPrimaryGeneratorAction(char* partName_) : part
   G4ParticleDefinition* particlen = G4ParticleTable::GetParticleTable() -> FindParticle(partName);
 
   std::string temp = partName;
-  if (temp == "neutron") eneRange = 12;
-  else if (temp == "gamma") eneRange = 5;
-  else if (temp == "e-") eneRange = 5;
+  if (temp == "neutron") eneRange = 15;
+  else if (temp == "gamma") eneRange = 6;
+  else if (temp == "e-") eneRange = 6;
   else if (temp == "e+") eneRange = 12;
   else if (temp == "alpha") eneRange = 12;
   else if (temp == "mu-") eneRange = 12;
   else throw;
 
   fParticleGun  = new G4ParticleGun(particlen,n_particle);
-  // fParticleGun->SetParticleEnergy(1*GeV);
-  
-  /* It opens the file with the initialization settings */
-  //std::ifstream in;
-  //in.open("/home/scratch/Geant4/CMSSW_8_0_20/src/geant4/GEM_Geant4_bkg/UserData/EnergyCDF.txt");
-
-  //if(in.fail())
-  //{
-  //  G4cerr << "Primary energy data has not imported!" << G4endl;
-  //}
-
-  //G4double xtemp,ytemp;
-
-  //while(!in.eof()){
-  //  in >> xtemp >> ytemp ;
-  //  ene.push_back(xtemp);
-  //  cdf.push_back(ytemp);
-  //}
-
-  //in.close();
-    
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -119,17 +98,6 @@ void TrGEMPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   // neutron
   yyy=G4UniformRand();
 
-  //for(G4int i=1; i<ene.size();i++)
-  //{
-  //  if( cdf[i] < yyy && yyy < cdf[i+1] )
-  //  {
-  //    xxx = (ene[i+1] - ene[i])*G4UniformRand();
-  //    primaryEne = ene[i]+xxx;
-  //    break;
-  //  }
-  //}
-  
-  //primaryEne = TMath::Power(10, (yyy-1)*12);
   primaryEne = TMath::Power(10, (yyy-1)*eneRange);
 
   fParticleGun->SetParticleEnergy(primaryEne*GeV);

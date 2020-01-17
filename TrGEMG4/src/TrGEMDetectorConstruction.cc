@@ -37,27 +37,24 @@ TrGEMDetectorConstruction::TrGEMDetectorConstruction() :
   tripleGemThinBase(0), tripleGemLargeBase(0), tripleGemHeight(0)
     
 {
-
   tripleGemThinBase  = 279.0*mm ;
   tripleGemLargeBase = 510.0*mm ;
   tripleGemHeight    = 1283.0*mm ;
 
-  // G4double cut = 1*um ;
-  // fGasDetectorCuts = new G4ProductionCuts() ;
-  // fGasDetectorCuts->SetProductionCut(cut,"gamma") ;
-  // cut = 1*nm ; 
-  // fGasDetectorCuts->SetProductionCut(cut,"e-") ;
-  // cut = 1*um ;
-  // fGasDetectorCuts->SetProductionCut(cut,"e+") ;
-  // cut = 0*um ;
-  // fGasDetectorCuts->SetProductionCut(cut,"proton") ;
+  G4double cut = 1*um ;
+  fGasDetectorCuts = new G4ProductionCuts() ;
+  fGasDetectorCuts->SetProductionCut(cut,"gamma") ;
+  cut = 1*nm ; 
+  fGasDetectorCuts->SetProductionCut(cut,"e-") ;
+  cut = 1*um ;
+  fGasDetectorCuts->SetProductionCut(cut,"e+") ;
+  cut = 0*um ;
+  fGasDetectorCuts->SetProductionCut(cut,"proton") ;
 
 }
 
 TrGEMDetectorConstruction::~TrGEMDetectorConstruction() {
-
   // delete fGasDetectorCuts ;
-
 }
 
 void TrGEMDetectorConstruction::DefineMaterials() {
@@ -117,9 +114,6 @@ void TrGEMDetectorConstruction::DefineMaterials() {
   fEmptyMat = empty ;
 
   // CF4 must be defined by hand
-  //G4int numel(0) ;
-  //G4double density(0.), temperature(0.), pressure(0.) ;
-  //G4String name, symbol ;
   G4Material* CF4 = new G4Material(name="CF4", density=0.003884*g/cm3, numel=2, kStateGas, temperature = 273.15*kelvin, pressure=1.0*atmosphere);
   CF4->AddElement(elC, 1) ;
   CF4->AddElement(elF, 4) ; 
@@ -138,42 +132,12 @@ void TrGEMDetectorConstruction::DefineMaterials() {
   ArCO2CF4->AddMaterial(CF4,0.40) ;
 
   // Choice of the gas
-  //fGasMat = ArCO2CF4 ;
+  fGdMat = manager->FindOrBuildMaterial("G4_Gd");
   fGasMat = ArCO2;
 
 }
 
 G4VPhysicalVolume* TrGEMDetectorConstruction::Construct() {
-
-
-  // //electric field
-
-  // fEMfield = new G4UniformElectricField(G4ThreeVector(0.0,0.0,3*kilovolt/cm));
-
-  // // Create an equation of motion for this field
-  // fEquation = new G4EqMagElectricField(fEMfield); 
-
-  // G4int nvar = 8;
-  // fStepper = new G4ClassicalRK4( fEquation, nvar );       
-
-  // // Get the global field manager 
-  // fFieldMgr= G4TransportationManager::GetTransportationManager()->GetFieldManager();
-  // // Set this field to the global field manager 
-  // fFieldMgr->SetDetectorField(fEMfield );
-
-  // fMinStep     = 0.010*mm ; // minimal step of 10 microns
-
-  // fIntgrDriver = new G4MagInt_Driver(fMinStep, 
-  //                                    fStepper, 
-  //                                    fStepper->GetNumberOfVariables() );
-
-  // fChordFinder = new G4ChordFinder(fIntgrDriver);
-  // fFieldMgr->SetChordFinder( fChordFinder );
-
-
-
-  //end electric field
-
   // Cleanup old geometry
   G4GeometryManager::GetInstance()->OpenGeometry();
 
@@ -227,7 +191,7 @@ G4VPhysicalVolume* TrGEMDetectorConstruction::Construct() {
   std::string NomeStrati[21]= 
   {
     "FakeBottom",                                   //Fake
-    "DriftCopper1","DriftBoard","DriftCopper2",     //Drift Board
+    "DriftCopper1","Drift","DriftCopper2",          //Drift Board
     "GasGap1",                                      //Drift Gap
     "Gem1Copper1","Gem1","Gem1Copper2",             //gem1
     "GasGap2",                                      //Transfer I Gap
@@ -243,7 +207,7 @@ G4VPhysicalVolume* TrGEMDetectorConstruction::Construct() {
 		
   for(size_t A=1; A<21; A++) { 
     NomeStratiLog[A]=NomeStrati[A]+"Log";
-	}
+  }
 		
   //const char* NomeStratiLog[21]={*NomeStratiLog1};
   G4Material* MatStrati[21]=
@@ -265,7 +229,7 @@ G4VPhysicalVolume* TrGEMDetectorConstruction::Construct() {
   G4double spessoreStrati[21] = 
   {
     0.1*mm,                    //Fake
-    35.*um,3.2*mm,35.*um,      //Drift Board
+    35.*um,3.2*um,35.*um,      //Drift Board
     3.*mm,                     //Drift Gap
     5.*um,50*um,5.*um,         //gem1
     1.*mm,                     //Transfer I Gap
@@ -295,12 +259,6 @@ G4VPhysicalVolume* TrGEMDetectorConstruction::Construct() {
   trdLogCollection[8]->SetSensitiveDetector(sensitive) ;		   
   trdLogCollection[12]->SetSensitiveDetector(sensitive) ;		   
   trdLogCollection[16]->SetSensitiveDetector(sensitive) ;		   
-  // G4bool allLocal = true;	
-  // trdLogCollection[4]->SetFieldManager(fFieldMgr,allLocal);
-  // trdLogCollection[8]->SetFieldManager(fFieldMgr,allLocal);
-  // trdLogCollection[12]->SetFieldManager(fFieldMgr,allLocal);
-  // trdLogCollection[16]->SetFieldManager(fFieldMgr,allLocal);
-
 
   PlaceGeometry(rotationPlacement,G4ThreeVector(0.,0.,0.),worldLog) ;
 

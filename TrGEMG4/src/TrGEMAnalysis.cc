@@ -66,7 +66,7 @@ void TrGEMAnalysis::PrepareNewRun(const G4Run* /*aRun*/)
   
   // create ROOT file
   //fileName = "root://cms-xrdr.sdfarm.kr:1094///xrd/store/user/yekang/TrGEMG4/" + fileName + ".root";
-  fileName = fileName + ".root";
+  fileName = fileName;
   m_ROOT_file = TFile::Open(fileName.c_str(),"RECREATE");
   if(m_ROOT_file) 
     G4cout << "ROOT file " << fileName << " is created " << G4endl;
@@ -84,6 +84,7 @@ void TrGEMAnalysis::PrepareNewRun(const G4Run* /*aRun*/)
   tEvent->Branch("EleGap",    &eleGap,    "EleGap[4]/I");
   tEvent->Branch("PosGap",    &posGap,    "PosGap[4]/I");
   tEvent->Branch("ChargeGap", &chargeGap, "ChargeGap[4]/I");
+  tEvent->Branch("edepGap",   &edepGap,   "edepGap[4]/D");
 
   tEvent->Branch("nElectron", &nElectron, "nElectron/I");
   tEvent->Branch("nPositron", &nPositron, "nPositron/I");
@@ -156,6 +157,7 @@ void TrGEMAnalysis::PrepareNewEvent(const G4Event* /*anEvent*/)
     eleGap[i]    = 0;
     posGap[i]    = 0;
     chargeGap[i] = 0;
+    edepGap[i]   = 0.;
   }
 
   genMap.clear();
@@ -187,6 +189,15 @@ void TrGEMAnalysis::SavePrimary(G4int primaryPart_, G4double primaryEne_){
   primaryEne = primaryEne_ / MeV;
 }
 
+void TrGEMAnalysis::AddEdep(
+  G4String volume,
+  G4double edep )
+{
+  G4int volNum = FindVolume(volume);
+  gap = volNum / 4 - 1;
+  edepGap[gap] += edep;
+}
+
 void TrGEMAnalysis::SaveGapTrack(
   G4int    trackId,
   G4int    gapPart, 
@@ -197,7 +208,6 @@ void TrGEMAnalysis::SaveGapTrack(
   TVector3 position, 
   TVector3 momentum ) 
 {
-  if (trackId == 1) return;
   G4int volNum = FindVolume(volume);
   gap = volNum / 4 - 1;
   kineticEnergy = kinene / MeV;
@@ -212,11 +222,13 @@ void TrGEMAnalysis::SaveGapTrack(
   {
     nElectron++;
     eleGap[gap]++;
+    chargeGap[gap]++;
     tElectron->Fill();
   } else if (gapPart == -11)
   {
     nPositron++;
     posGap[gap]++;
+    chargeGap[gap]++;
     tPositron->Fill();
   } else if (gapPart == 22)
   {
@@ -239,7 +251,7 @@ void TrGEMAnalysis::SaveGenTrack(
   G4int trackID, 
   G4int parentID)
 {
-  if(process == "primary") return;
+  //if(process == "primary") return;
   G4int volNum = FindVolume(volume);
   G4int processNum = FindGeneratingProcess(process);
   G4int id = trackID;
@@ -276,7 +288,7 @@ G4int TrGEMAnalysis::FindGeneratingProcess(std::string process)
   {
     if(posProcess[i] == process) return i;
   }
-  G4cout << process << G4endl;
+  //G4cout << process << G4endl;
   return -1;
 }
 
@@ -287,7 +299,7 @@ void TrGEMAnalysis::PreSavingTrack(G4int trackID)
   processNum.push_back(genMap[trackID][2]);
   processVol.push_back(genMap[trackID][3]);
   volCopyNo.push_back(genMap[trackID][4]);
-  while(id != 1) {
+  while(id != 0) {
     partId.push_back(genMap[id][1]);
     processNum.push_back(genMap[id][2]);
     processVol.push_back(genMap[id][3]);

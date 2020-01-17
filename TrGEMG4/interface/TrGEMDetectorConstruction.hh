@@ -47,6 +47,7 @@ class TrGEMDetectorConstruction : public G4VUserDetectorConstruction
     G4Material*        fAirMat;
     G4Material*        fCuMat;
     G4Material*        fKAPTONMat;
+    G4Material*        fGdMat;
     G4double           tripleGemThinBase; 
     G4double           tripleGemLargeBase;
     G4double           tripleGemHeight;
@@ -54,20 +55,7 @@ class TrGEMDetectorConstruction : public G4VUserDetectorConstruction
     std::vector<G4Trd*>           trdCollection ;
     std::vector<G4LogicalVolume*> trdLogCollection ;
 
-    //    G4ProductionCuts*  fGasDetectorCuts;
-
-    //   std::vector<G4Trd*> 	    TrdStrati;
-    //   G4LogicalVolume*		    logicStrati[21];
-
-    // //For Electric Field
-    // G4ElectricField*        fEMfield;
-    // G4EqMagElectricField*   fEquation;
-    // G4MagIntegratorStepper* fStepper;
-    // G4FieldManager*         fFieldMgr;
-    // G4double                fMinStep ;
-    // G4ChordFinder*          fChordFinder ;
-    // G4MagInt_Driver*        fIntgrDriver;
-
+    G4ProductionCuts*  fGasDetectorCuts;
 };
 
 #endif

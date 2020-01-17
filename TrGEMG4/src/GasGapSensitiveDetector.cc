@@ -117,6 +117,8 @@ G4bool GasGapSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory *)
       break;
     }
   }
+  
+  TrGEMAnalysis::GetInstance()->AddEdep(volName, edepI);
 
   if(contaSec!=9999)  {
     TrGEMAnalysis::GetInstance()->SaveGapTrack(trackIndex, pdg, charge, volName, copyNo, energy ,position, momentum);
@@ -124,10 +126,6 @@ G4bool GasGapSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory *)
     ttTrack.push_back(trackIndex);
   }  
     
-
-  //check if edep is from primary or secondary:
-  G4String isPri = step->GetTrack()->GetTrackID() == 1 ? "Yes" : "No";
-
   // Tricks to implement hits 
   hitMap_t::iterator it = hitMap.find(layerIndex) ;
   GasGapHit* aHit = 0 ;

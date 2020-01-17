@@ -29,6 +29,7 @@ class TrGEMAnalysis {
     void EndOfRun(const G4Run* aRun);
     
     void SavePrimary(G4int primaryPart_, G4double primaryEne_);
+    void AddEdep(G4String volume, G4double edep);
     void SaveGapTrack(G4int trackId,
                       G4int gapPart, 
                       G4int aCharge,
@@ -81,6 +82,7 @@ class TrGEMAnalysis {
     G4int eleGap[4];
     G4int posGap[4];
     G4int chargeGap[4];
+    G4double edepGap[4];
 
     // Particle Info
     G4int gap;
