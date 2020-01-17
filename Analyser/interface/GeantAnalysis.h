@@ -22,6 +22,7 @@ private:
   TFile* fOutput;
 
   TH1D* hPrimaryEne;
+  TH1D* hSens;
 
   TH1D* hElect;
   TH1D* hGamma;
@@ -42,7 +43,9 @@ private:
   int eleGap[4];
   int posGap[4];
   int chargeGap[4];
+  double edepGap[4];
 
+  int sensChar;
   int nElectron;
   int nPositron;
   int nGamma;
@@ -86,29 +89,32 @@ public:
 GeantAnalysis::GeantAnalysis(string temp, bool t)
 {
   if (t) {
-    lowBound = -3;
+    lowBound = -12;
     highBound = 3;
   } else {
-    lowBound = -6;
+    lowBound = -12;
     highBound = 3;
   }
+  int nBins = 1000;
   layerName = Geometry::layerName;
   posProcess = FTFP_BERT::processes;
   fOutput = TFile::Open(temp.c_str(), "RECREATE");
 
-  hPrimaryEne = new TH1D("Primary Energy", "Primary Energy", 100, lowBound, highBound);
+  hPrimaryEne = new TH1D("Primary Energy", "Primary Energy", nBins, lowBound, highBound);
+  hSens = new TH1D("Sensitivity", "Sensitivity", nBins, lowBound, highBound);
 
-  hElect = new TH1D("Electron", "Electron", 100, lowBound, highBound);
-  hGamma = new TH1D("Gamma", "Gamma", 100, lowBound, highBound);
+  hElect = new TH1D("Electron", "Electron", nBins, lowBound, highBound);
+  hGamma = new TH1D("Gamma", "Gamma", nBins, lowBound, highBound);
   BinLogX(hPrimaryEne);
+  BinLogX(hSens);
   BinLogX(hElect);
   BinLogX(hGamma);
 
-  hElectronPrimaryProcess = new TH2D("ElectronPrimaryProcess","ElectronPrimaryProcess",100, lowBound, highBound, posProcess.size(), 0, posProcess.size());
-  hElectronSecondaryProcess = new TH2D("ElectronSecondaryProcess","ElectronSecondaryProcess",100, lowBound, highBound, posProcess.size(), 0, posProcess.size());
-  hElectronGenProcess = new TH2D("ElectronGenProcess","ElectronGenProcess",100, lowBound, highBound, posProcess.size(), 0, posProcess.size());
-  hGammaPrimaryProcess = new TH2D("GammaPrimaryProcess","GammaPrimaryProcess",100, lowBound, highBound, posProcess.size(), 0, posProcess.size());
-  hGammaGenProcess = new TH2D("GammaGenProcess","GammaGenProcess",100, lowBound, highBound, posProcess.size(), 0, posProcess.size());
+  hElectronPrimaryProcess = new TH2D("ElectronPrimaryProcess","ElectronPrimaryProcess",nBins, lowBound, highBound, posProcess.size(), 0, posProcess.size());
+  hElectronSecondaryProcess = new TH2D("ElectronSecondaryProcess","ElectronSecondaryProcess",nBins, lowBound, highBound, posProcess.size(), 0, posProcess.size());
+  hElectronGenProcess = new TH2D("ElectronGenProcess","ElectronGenProcess",nBins, lowBound, highBound, posProcess.size(), 0, posProcess.size());
+  hGammaPrimaryProcess = new TH2D("GammaPrimaryProcess","GammaPrimaryProcess",nBins, lowBound, highBound, posProcess.size(), 0, posProcess.size());
+  hGammaGenProcess = new TH2D("GammaGenProcess","GammaGenProcess",nBins, lowBound, highBound, posProcess.size(), 0, posProcess.size());
 
   BinLogX(hElectronPrimaryProcess);
   BinLogX(hElectronSecondaryProcess);
@@ -130,6 +136,7 @@ void GeantAnalysis::SetFile(string fileName)
   tEvent = (TTree*) inFile->Get("Event");
 
   tEvent->SetBranchAddress("primaryEne", &primaryEne);
+  tEvent->SetBranchAddress("sensChar", &sensChar);
   tEvent->SetBranchAddress("EleGap", eleGap);
   tEvent->SetBranchAddress("PosGap", posGap);
   tEvent->SetBranchAddress("ChargeGap", chargeGap);
@@ -137,6 +144,7 @@ void GeantAnalysis::SetFile(string fileName)
   tEvent->SetBranchAddress("nPositron", &nPositron);
   tEvent->SetBranchAddress("nGamma",    &nGamma);
   tEvent->SetBranchAddress("nCharged",  &nCharged);
+  tEvent->SetBranchAddress("edepGap", edepGap);
 
   tElectron = (TTree*) inFile->Get("Electron");
   tElectron->SetBranchAddress("gap",      &gap);

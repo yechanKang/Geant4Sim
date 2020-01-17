@@ -2,6 +2,7 @@
 
 #include "Geant4Sim/Analyser/interface/GeantAnalysis.h"
 #include <iostream>
+#include <fstream>
 
 using namespace std;
 
@@ -15,39 +16,40 @@ void GeantAnalysis::Analysis()
   for(Long64_t i = 0; i < nEntries; i++)
   {
     tEvent->GetEntry(i);
-    hPrimaryEne->Fill(primaryEne*1E+6);
-    cout << primaryEne*1E+6 << endl;
+    hPrimaryEne->Fill(primaryEne);
+    if (chargeGap[0] != 0 or chargeGap[1] != 0) hSens->Fill(primaryEne);
+    else hSens->Fill(primaryEne, 0)
 
-    for(int iEl = 0; iEl < nElectron; iEl++)
-    {
-      tElectron->GetEntry(iElectron);
-      hElect->Fill(primaryEne*1E+6);
-      bool test = false;
-      for (unsigned int ie = 1; ie < partId->size(); ie++)
-      {
-        test = (partId->at(ie) == 11)|test;
-      }
-      if (!test) 
-      {
-        hElectronGenProcess->Fill(primaryEne*1E+6,
-                                  processNum->at(0));
-        hElectronPrimaryProcess->Fill(primaryEne*1E+6,
-                                      processNum->at(partId->size()-1));
-        hElectronSecondaryProcess->Fill(primaryEne*1E+6,
-                                        processNum->at(partId->size()-2));
-      }
-      iElectron++;
-    }
-    for(int iG = 0; iG < nGamma; iG++)
-    {
-      tGamma->GetEntry(iGamma);
-      hGamma->Fill(primaryEne*1E+6);
-      hGammaGenProcess->Fill(primaryEne*1E+6,
-                             processNum->at(0));
-      hGammaPrimaryProcess->Fill(primaryEne*1E+6,
-                                 processNum->at(partId->size()-1));
-      iGamma++;
-    }
+    //for(int iEl = 0; iEl < nElectron; iEl++)
+    //{
+    //  tElectron->GetEntry(iElectron);
+    //  hElect->Fill(primaryEne);
+    //  bool test = false;
+    //  for (unsigned int ie = 1; ie < partId->size(); ie++)
+    //  {
+    //    test = (partId->at(ie) == 11)|test;
+    //  }
+    //  if (!test) 
+    //  {
+    //    hElectronGenProcess->Fill(primaryEne,
+    //                              processNum->at(0));
+    //    hElectronPrimaryProcess->Fill(primaryEne,
+    //                                  processNum->at(partId->size()-1));
+    //    hElectronSecondaryProcess->Fill(primaryEne,
+    //                                    processNum->at(partId->size()-2));
+    //  }
+    //  iElectron++;
+    //}
+    //for(int iG = 0; iG < nGamma; iG++)
+    //{
+    //  tGamma->GetEntry(iGamma);
+    //  hGamma->Fill(primaryEne*1E+6);
+    //  hGammaGenProcess->Fill(primaryEne*1E+6,
+    //                         processNum->at(0));
+    //  hGammaPrimaryProcess->Fill(primaryEne*1E+6,
+    //                             processNum->at(partId->size()-1));
+    //  iGamma++;
+    //}
   }
 }
 
@@ -59,12 +61,12 @@ int main(Int_t argc, Char_t** argv)
   }
   else
   {
-    string temp = argv[1];
-    auto analysis = new GeantAnalysis(temp, true);
+    auto analysis = new GeantAnalysis("step2.root", true);
     
-    for(Int_t i = 2; i < argc; i++)
-    { 
-      temp = argv[i];
+    string temp = argv[1];
+    std::ifstream fileList(temp);
+    while (!fileList.eof()) {
+      fileList >> temp;
       cout << temp << " has opend" << endl;
       analysis->SetFile(temp);
       analysis->Analysis();

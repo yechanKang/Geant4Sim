@@ -44,12 +44,12 @@ int main(int argc, char** argv) {
   // get the pointer to the UI manager
   G4UImanager* UImanager = G4UImanager::GetUIpointer();
 
-  G4String temp = argv[2];
-  //UImanager->ApplyCommand("/run/setCut 1 nm");
+  G4String temp = "step1.root";
   TrGEMAnalysis::GetInstance()->SetFileName(temp);
   G4String command = "/run/beamOn ";
-  temp = argv[3];
+  temp = argv[2];
   UImanager->ApplyCommand("/run/initialize");
+  UImanager->ApplyCommand("/run/setCut 1 nm");
   UImanager->ApplyCommand("/cuts/setLowEdge 10 eV");
   UImanager->ApplyCommand(command+temp);
 
