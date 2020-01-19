@@ -18,7 +18,6 @@ void GeantAnalysis::Analysis()
     tEvent->GetEntry(i);
     hPrimaryEne->Fill(primaryEne);
     if (chargeGap[0] != 0 or chargeGap[1] != 0) hSens->Fill(primaryEne);
-    else hSens->Fill(primaryEne, 0)
 
     //for(int iEl = 0; iEl < nElectron; iEl++)
     //{
